@@ -1,0 +1,22 @@
+﻿@page "/registration"
+@rendermode InteractiveAuto
+ @inject IConfiguration Configuration
+
+<h3>Registration</h3>
+<h1>UserService</h1>
+@code {
+
+    private Dictionary<string, string> Urls = new Dictionary<string, string>();
+    private string UserService;
+
+    protected override void OnInitialized()
+    {
+        // Загружаем словарь URL-адресов из appsettings.json
+        Urls = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+
+        // Получаем URL для "Google"
+        Urls.TryGetValue("UserService", out UserService);
+    }
+
+
+}
