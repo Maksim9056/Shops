@@ -28,7 +28,7 @@
 {
     private string Searh_input;
 
-    private string Product_Url;
+    private string Store_Products;
     private Dictionary<string, string> Urls = new Dictionary<string, string>();
     public Product[] Products ;
 
@@ -38,7 +38,7 @@
         Urls = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
 
         // Получаем URL для "Google"
-        Urls.TryGetValue("Google", out Product_Url);
+        Urls.TryGetValue("Store_Products", out Store_Products);
 
 
         await   Registration_page();
@@ -56,7 +56,7 @@
         {
 
 
-            var prod = await client.GetFromJsonAsync<Product []>(Product_Url);
+            var prod = await client.GetFromJsonAsync<Product []>(Store_Products);
         }
         catch(Exception)
         {
