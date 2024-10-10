@@ -1,0 +1,39 @@
+﻿@page "/counter"
+@rendermode InteractiveAuto
+ @inject IConfiguration Configuration
+ 
+
+ <h3>URL для Google</h3>
+
+<p>@googleUrl</p>
+
+@code {
+    private Dictionary<string, string> Urls = new Dictionary<string, string>();
+    private string googleUrl;
+
+    protected override void OnInitialized()
+    {
+        // Загружаем словарь URL-адресов из appsettings.json
+        Urls = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+
+        // Получаем URL для "Google"
+        Urls.TryGetValue("Google", out googleUrl);
+    }
+}
+@* 
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+} *@
