@@ -17,7 +17,7 @@ namespace Store_Projects.Controllers
         [HttpGet]
         public async Task Projects()
         {
-
+   
 
         }
 
