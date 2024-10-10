@@ -11,6 +11,7 @@ namespace ShopClassLibrary.ModelShop
         public long Id { get; set; }
 
         public string Products { get; set; }
+        public string ProductsDescription { get; set; }
 
         public long ProductCount { get; set; }
 
