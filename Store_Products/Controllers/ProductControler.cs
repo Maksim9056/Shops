@@ -24,8 +24,9 @@ namespace Store_Products.Controllers
 
 
         [HttpPost]
-        public IActionResult ProductCreate([FromBody] Product Product)
+        public async Task<IActionResult> ProductCreate([FromBody] Product Product)
         {
+            await  _context.AddAsync(Product);
 
             return Ok($"POST-запрос успешно обработан! Данные: {Product.Products}, {Product.ProductCount}");
         }
