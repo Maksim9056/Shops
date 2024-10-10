@@ -8,7 +8,7 @@
 @inject ProtectedLocalStorage ProtectedLocalStore
 @inject IJSRuntime JSRuntime
 @inject IConfiguration Configuration
-
+<input type="email" @bind="Searh_input" />
 @* <div>
     <p>Почта</p>
     <input type="email" @bind="" />
@@ -26,6 +26,8 @@
 
 @code
 {
+    private string Searh_input;
+
     private string Product_Url;
     private Dictionary<string, string> Urls = new Dictionary<string, string>();
     public Product[] Products ;
