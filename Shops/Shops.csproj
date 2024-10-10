@@ -9,7 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ShopClassLibrary\ShopClassLibrary.csproj" />
     <ProjectReference Include="..\Shops.Client\Shops.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
   </ItemGroup>
 

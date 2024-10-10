@@ -13,9 +13,9 @@ namespace ShopClassLibrary
     {
         public ShopData(DbContextOptions<ShopData> options) : base(options) 
         {
-        
-          //Database.EnsureCreated();
-        
+
+            //Database.EnsureCreated();
+            Database.Migrate();
         }
 
         public DbSet<Order> Orders { get; set; }
@@ -25,7 +25,8 @@ namespace ShopClassLibrary
         public DbSet<Tasks_Shop> SystemUrls { get; set; }
         public DbSet<Status> Status { get; set; }
         public DbSet<Project> Projects { get; set; }
-
+        public DbSet<Category> Category { get; set; }
+        public DbSet<Product_category> Product_category { get; set; }
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{
