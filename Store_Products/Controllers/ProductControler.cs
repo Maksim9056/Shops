@@ -33,12 +33,16 @@ namespace Store_Products.Controllers
 
                 await _context.Products.AddAsync(Product);
                 await _context.SaveChangesAsync();
-                await _context.Products.Include(u =>u.Status) .FirstOrDefaultAsync(u =>u.Products == Product.Products);
-                return CreatedAtAction($"POST-запрос успешно обработан! Данные: {Product.Products}, {Product.ProductCount}", Product);
+              Product  =   await _context.Products.Include(u =>u.Status).FirstOrDefaultAsync(u =>u.Products == Product.Products && u.ProductsDescription == Product.ProductsDescription);
             } catch (Exception ex)
             {
-                
+                Problem(ex.Message);
+            }finally
+            {
+
             }
+
+            return CreatedAtAction($"POST-запрос успешно обработан! Данные: {Product.Products}, {Product.ProductCount}", Product);
         }
 
     }
