@@ -41,17 +41,25 @@
 
         await   Registration_page();
     }
-    
+
 
     // private async Task Log()
     // {
-     
+
     // }
 
     private async Task Registration_page()
     {
-        var prod = await client.GetFromJsonAsync<Task>(Product_Url);
+        try
+        {
 
+
+            var prod = await client.GetFromJsonAsync<Product []>(Product_Url);
+        }
+        catch(Exception)
+        {
+            
+        }
 
     }
 

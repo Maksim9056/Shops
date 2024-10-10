@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ShopClassLibrary;
 using ShopClassLibrary.ModelShop;
 
 namespace Store_Projects.Controllers
@@ -7,6 +8,12 @@ namespace Store_Projects.Controllers
     [Route("[controller]")]
     public class ProjectsControler: ControllerBase
     {
+        private readonly ShopData _context;
+        public ProjectsControler(ShopData context)
+        {
+            _context = context;
+        }
+
         [HttpGet]
         public async Task Projects()
         {

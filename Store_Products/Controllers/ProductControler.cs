@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using ShopClassLibrary;
 using ShopClassLibrary.ModelShop;
 using System.Collections.Generic;
 
@@ -9,6 +10,11 @@ namespace Store_Products.Controllers
     [Route("[controller]")]
     public class ProductControler: ControllerBase
     {
+        private readonly ShopData _context;
+        public ProductControler(ShopData context)
+        {
+            _context = context;
+        }
         [HttpGet]
         public  async Task<Product[]> ProductAll()
         {
