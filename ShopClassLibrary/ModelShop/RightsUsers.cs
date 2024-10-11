@@ -10,7 +10,7 @@ namespace ShopClassLibrary.ModelShop
     {
         public long Id { get; set; }
         public User Id_User { get; set; }
-        Rights Id_Rights { get; set; }
+        public Rights Id_Rights { get; set; }
         public DateTime AssignedDate { get; set; } // Дата назначения прав
         public Status Status { get; set; } // Статус связи пользователя и прав (например, "Активна", "Отменена")
 
