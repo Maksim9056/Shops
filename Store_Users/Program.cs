@@ -1,6 +1,12 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using ShopClassLibrary;
+using ShopClassLibrary.ModelShop;
+using Store_Users.Service;
+using System.Text;
 
 namespace Store_Users
 {
@@ -18,6 +24,33 @@ namespace Store_Users
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ShopData>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("Shop")));
+           var aCS = builder.Configuration.GetSection("AppSettings")["Secret"];
+
+            var key = Encoding.ASCII.GetBytes(aCS);
+            builder.Services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(x =>
+            {
+                x.RequireHttpsMetadata = false;
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
+            builder.Services.AddHttpClient();
+            builder.Services.AddMemoryCache();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Store_Users", Version = "v1" });
+            });
+            builder.Services.AddScoped<IUserService, UserService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
