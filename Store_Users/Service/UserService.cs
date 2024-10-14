@@ -49,7 +49,26 @@ namespace Store_Users.Service
             return token;
         }
 
-     
+        public async Task<User> RegisterUserAsync(User user)
+        {
+            try
+            {
+                user.IsBlocked = false;
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
+                user.CreatedDate =DateTime.UtcNow;
+                user.Status = null;
+                user.Orders = new List<Order>();
+                user.Id = 0;
+                await   _dbContext.Users.AddAsync(user);
+                await _dbContext.SaveChangesAsync();
+                return user;
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return user;
+        }
 
         private string GenerateJwtToken(User user)
         {

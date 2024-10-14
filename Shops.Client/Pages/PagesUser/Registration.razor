@@ -1,7 +1,13 @@
 ﻿@page "/registration"
 @using ShopClassLibrary.ModelShop
 @rendermode InteractiveAuto
- @inject IConfiguration Configuration
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+<PageTitle>Home</PageTitle>
+@* @inject ProtectedLocalStorage ProtectedLocalStore
+*@
+@inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
 <h3>Registration</h3>
 @* <h1>UserService</h1> *@
 
@@ -57,7 +63,10 @@
         try
         {
 
-
+            client.BaseAddress =new Uri( UserService);
+            var createuser = await client.PostAsJsonAsync(UserService, User);
+            var user =   await  createuser.RequestMessage.Content.ReadAsStringAsync();
+            Console.WriteLine(user);
         }
         catch (Exception)
         {

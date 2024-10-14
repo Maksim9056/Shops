@@ -9,5 +9,7 @@ namespace ShopClassLibrary.ModelShop
     public interface IUserService
     {
         Task<string> AuthenticateUserAsync(string email, string password);
+        Task<User> RegisterUserAsync(User user);
+
     }
 }

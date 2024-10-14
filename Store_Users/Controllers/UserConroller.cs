@@ -33,7 +33,7 @@ namespace Store_Users.Controllers
         [HttpGet("log")]
         public async Task UserLog()
         {
-            _IUserService.AuthenticateUserAsync("","");
+           await    _IUserService.AuthenticateUserAsync("","");
 
         }
 
@@ -46,14 +46,15 @@ namespace Store_Users.Controllers
      
 
         [HttpPost]
-        public ActionResult UserCreate([FromBody] User User)
+        public async Task<ActionResult> UserCreate([FromBody] User User)
         {
             try
             {
-                User.IsBlocked = false;
-                User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(User.Password); 
+            
+                var users = await _IUserService.RegisterUserAsync(User);
+
                 
-                _context.Add(User);
+                ////_context.Add(User);
                 return Ok(User);
 
             }
