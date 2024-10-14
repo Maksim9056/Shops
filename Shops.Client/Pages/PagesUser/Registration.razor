@@ -3,8 +3,9 @@
 @rendermode InteractiveAuto
 @inject HttpClient client
 @inject NavigationManager NavigationManager
-<PageTitle>Home</PageTitle>
-@* @inject ProtectedLocalStorage ProtectedLocalStore
+@* <PageTitle>Home</PageTitle>
+ *@
+ @* @inject ProtectedLocalStorage ProtectedLocalStore
 *@
 @inject IJSRuntime JSRuntime
 @inject IConfiguration Configuration
@@ -38,6 +39,12 @@
     <input type="tel" @bind="User.PhoneNumber">
 </div>
 <InputFile OnChange="@HandleFileUpload" />
+@if (bytes != null)
+{
+    <img src="data:image/png;base64,@Convert.ToBase64String(bytes)" alt="Category" @* @onclick="" *@>
+
+}
+
 
 <button class="btn btn-primary" @onclick="SubmitForm">Зарегистрироваться</button>
 
@@ -45,17 +52,31 @@
 
 @code {
     public User User = new User();
-    private Dictionary<string, string> Urls = new Dictionary<string, string>();
+    private readonly Dictionary<string, string> Urls = new Dictionary<string, string>();
     private string UserService;
     public byte[] bytes;
 
+
     protected override async Task OnInitializedAsync()
     {
-        // Загружаем словарь URL-адресов из appsettings.json
-        Urls = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+        try
+        {
 
-        // Получаем URL для "Google"
-        Urls.TryGetValue("UserService", out UserService);
+
+            // Загружаем словарь URL-адресов из appsettings.json
+            var keyValuePairs = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+            foreach (var url in keyValuePairs)
+            {
+                Urls.Add(url.Key, url.Value);
+
+            }
+            // Получаем URL для "Google"
+            Urls.TryGetValue("UserService", out UserService);
+        }
+        catch(Exception)
+        {
+            
+        }
     }
 
     private async Task SubmitForm()
@@ -63,8 +84,9 @@
         try
         {
 
+            User.User_Image = bytes;
             client.BaseAddress =new Uri( UserService);
-            var createuser = await client.PostAsJsonAsync(UserService, User);
+            var createuser = await client.PostAsJsonAsync(UserService + "/UserConroller", User);
             var user =   await  createuser.RequestMessage.Content.ReadAsStringAsync();
             Console.WriteLine(user);
         }
@@ -80,14 +102,14 @@
             using (MemoryStream ms = new MemoryStream())
             {
                 //Открыть один раз  дать значение
-                var mss = e.File.OpenReadStream(999999999999999999);
+                var mss = e.File.OpenReadStream();
                 // Копируем в поток
                 await mss.CopyToAsync(ms);
                 //Преобразуем в данные В МАССИВ BYTE[]
                 bytes = ms.ToArray();
             }
         }
-        catch
+        catch(Exception)
         {
 
         }
