@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShopClassLibrary;
@@ -11,9 +12,11 @@ using ShopClassLibrary;
 namespace ShopClassLibrary.Migrations
 {
     [DbContext(typeof(ShopData))]
-    partial class ShopDataModelSnapshot : ModelSnapshot
+    [Migration("20241014143541_InitialCreate4")]
+    partial class InitialCreate4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -322,10 +325,6 @@ namespace ShopClassLibrary.Migrations
                     b.Property<long>("StatusId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Surname")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -333,9 +332,6 @@ namespace ShopClassLibrary.Migrations
                     b.Property<byte[]>("User_Image")
                         .IsRequired()
                         .HasColumnType("bytea");
-
-                    b.Property<long>("Year")
-                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 

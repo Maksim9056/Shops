@@ -1,15 +1,49 @@
 ﻿@page "/registration"
+@using ShopClassLibrary.ModelShop
 @rendermode InteractiveAuto
  @inject IConfiguration Configuration
-
 <h3>Registration</h3>
-<h1>UserService</h1>
-@code {
+@* <h1>UserService</h1> *@
 
+<div>
+    <label>Имя</label>
+    <input type="text" @bind="User.UserName ">
+</div>
+<div>
+    <label>Фамилия</label>
+    <input type="text" @bind="User.Surname">
+</div>
+<div>
+    <label>Возраст</label>
+    <input type="number" @bind="User.Year">
+</div>
+<div>
+    <label>Пароль</label>
+    <input type="password" @bind="User.Password">
+</div>
+
+<div>
+    <label>Почта</label>
+    <input type="email" @bind="User.Email">
+</div>
+
+<div>
+    <label>Телефон</label>
+    <input type="tel" @bind="User.PhoneNumber">
+</div>
+<InputFile OnChange="@HandleFileUpload" />
+
+<button class="btn btn-primary" @onclick="SubmitForm">Зарегистрироваться</button>
+
+
+
+@code {
+    public User User = new User();
     private Dictionary<string, string> Urls = new Dictionary<string, string>();
     private string UserService;
+    public byte[] bytes;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // Загружаем словарь URL-адресов из appsettings.json
         Urls = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
@@ -18,5 +52,35 @@
         Urls.TryGetValue("UserService", out UserService);
     }
 
+    private async Task SubmitForm()
+    {
+        try
+        {
 
+
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                //Открыть один раз  дать значение
+                var mss = e.File.OpenReadStream(999999999999999999);
+                // Копируем в поток
+                await mss.CopyToAsync(ms);
+                //Преобразуем в данные В МАССИВ BYTE[]
+                bytes = ms.ToArray();
+            }
+        }
+        catch
+        {
+
+        }
+    }
 }

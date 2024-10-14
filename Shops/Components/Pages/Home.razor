@@ -8,8 +8,8 @@
 @inject ProtectedLocalStorage ProtectedLocalStore
 @inject IJSRuntime JSRuntime
 @inject IConfiguration Configuration
-<input type="email" @bind="Searh_input" />
-@* <div>
+@* <input type="email" @bind="Searh_input" />
+ *@@* <div>
     <p>Почта</p>
     <input type="email" @bind="" />
 </div>
@@ -21,27 +21,49 @@
 
 <button @onclick=Log>Вход</button>
  *@
+@if (Categories != null)
+{
+    @foreach (var category in categoryList)
+    {
+        <li>@category.Name_Category</li>
+        <img src="data:image/png;base64,@Convert.ToBase64String(category.Image_Category)" alt="Category" @* @onclick ="" *@>
 
+    }
+
+{ }
+}
 
 
 @code
 {
+
+    public IAsyncEnumerable<Category> Categories  ;
     private string Searh_input;
+    private List<Category> categoryList = new List<Category>();
 
     private string Store_Products;
     private Dictionary<string, string> Urls = new Dictionary<string, string>();
     public Product[] Products ;
 
-    protected override async void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Загружаем словарь URL-адресов из appsettings.json
-        Urls = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
-
-        // Получаем URL для "Google"
-        Urls.TryGetValue("Store_Products", out Store_Products);
+        try
+        {
 
 
-        await   Registration_page();
+            // Загружаем словарь URL-адресов из appsettings.json
+            Urls = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+
+            // Получаем URL для "Google"
+            Urls.TryGetValue("Store_Category", out Store_Products);
+
+
+            await Registration_page();
+        }
+        catch(Exception)
+        {
+            
+        }
     }
 
 
@@ -55,8 +77,24 @@
         try
         {
 
-
-            var prod = await client.GetFromJsonAsync<Product []>(Store_Products);
+            client.BaseAddress =new  Uri (Store_Products);
+            var prod = await client.GetFromJsonAsync<IAsyncEnumerable<Category>>(Store_Products + "/CategoryControler");
+            // Проверяем, инициализирован ли Categories
+            if (Categories != null)
+            {
+                // Асинхронно перебираем и добавляем категории в список
+                await foreach (var category in Categories)
+                {
+                    categoryList.Add(category);
+                    // Можно обновлять UI после добавления каждого элемента
+                    // StateHasChanged();
+                }
+            }
+            else
+            {
+                // Обработка случая, когда Categories не инициализирован
+                // Например, можно вызвать метод для его инициализации
+            }
         }
         catch(Exception)
         {
