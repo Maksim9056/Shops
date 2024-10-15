@@ -11,7 +11,7 @@
     private Dictionary<string, string> Urls = new Dictionary<string, string>();
     private string googleUrl;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // Загружаем словарь URL-адресов из appsettings.json
         Urls = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();

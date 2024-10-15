@@ -53,12 +53,9 @@ namespace Store_Users.Service
         {
             try
             {
-                user.IsBlocked = false;
+             
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
-                user.CreatedDate =DateTime.UtcNow;
-                user.Status = null;
-                user.Orders = new List<Order>();
-                user.Id = 0;
+         
                 await   _dbContext.Users.AddAsync(user);
                 await _dbContext.SaveChangesAsync();
                 return user;

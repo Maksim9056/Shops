@@ -1,4 +1,6 @@
+using Blazored.LocalStorage;
 using Microsoft.Extensions.Configuration;
+using Shops.Client;
 using Shops.Client.Pages;
 using Shops.Components;
 
@@ -17,6 +19,8 @@ namespace Shops
             builder.Services.AddHttpClient();
             // Загружаем словарь URL-адресов
             var urls = builder.Configuration.GetSection("Urls").Get<Dictionary<string, string>>();
+            builder.Services.AddLogging();
+            builder.Services.AddScoped<UrlService>();
 
             // Проверяем и выводим загруженные данные
             if (urls != null)
@@ -31,6 +35,8 @@ namespace Shops
                 Console.WriteLine("URLs not found in the configuration.");
             }
             builder.Services.AddSingleton(builder.Configuration);
+            builder.Services.AddLogging();  // For Blazor Server
+            builder.Services.AddBlazoredLocalStorage();
 
             var app = builder.Build();
 
@@ -45,7 +51,7 @@ namespace Shops
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            
             app.UseHttpsRedirection();
 
             app.UseStaticFiles();
