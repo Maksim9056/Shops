@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store_Category", "Store_Cat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store_Product_category", "Store_Product_category\Store_Product_category.csproj", "{5AF8D9A4-6508-46F0-891A-1E883B095546}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Store_Status", "Store_Status\Store_Status.csproj", "{8A6ABDCF-4C1E-4A5B-A77A-554A71CA51AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store_Status", "Store_Status\Store_Status.csproj", "{8A6ABDCF-4C1E-4A5B-A77A-554A71CA51AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -31,12 +32,24 @@ namespace Store_Users.Controllers
 
 
         [HttpGet("log")]
-        public async Task UserLog()
+        public async Task<IActionResult> UserLog( string email, string password)
         {
-           await    _IUserService.AuthenticateUserAsync("","");
+            string jwt_token = "";
+            try
+            {
 
+
+                jwt_token = await _IUserService.AuthenticateUserAsync(email, password);
+                return Ok(jwt_token);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message); // Возвращаем ошибку с кодом 500
+
+            }
         }
 
+        [Authorize]
         [HttpGet("check-similar")]
         public async Task UserCheckSimular()
         {

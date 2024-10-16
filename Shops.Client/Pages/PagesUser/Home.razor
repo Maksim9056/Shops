@@ -1,0 +1,149 @@
+﻿@page "/"
+@using ShopClassLibrary.ModelShop
+@rendermode InteractiveAuto
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@inject UrlService UrlService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
+<PageTitle>Home</PageTitle>
+
+
+@* <input type="email" @bind="Searh_input" />
+ *@@* <div>
+    <p>Почта</p>
+    <input type="email" @bind="" />
+</div>
+
+<div>
+    <p>Пароль</p>
+    <input type="password" @bind="" />
+</div>
+
+<button @onclick=Log>Вход</button>
+ *@
+@if (Categories != null)
+{
+    @foreach (var category in categoryList)
+    {
+        <li>@category.Name_Category</li>
+        <img src="data:image/png;base64,@Convert.ToBase64String(category.Image_Category)" alt="Category" @* @onclick="" *@>
+
+    }
+
+    { }
+}
+
+
+@code
+{
+
+    public IAsyncEnumerable<Category> Categories;
+    private string Searh_input;
+    private List<Category> categoryList = new List<Category>();
+
+    private string Store_Products;
+    private Dictionary<string, string> Urls = new Dictionary<string, string>();
+    public Product[] Products;
+
+    private bool _isInitialized;
+    private string Store_CategoryUrl_Service;
+    private string jwt_token{ get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isInitialized = true; 
+             jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
+          //   client.DefaultRequestHeaders.Authorization =
+          // new AuthenticationHeaderValue("Bearer", "ваш_JWT_токен");
+            var Store_CategoryUrl = await localStorage.GetItemAsync<string>("Store_CategoryUrl");
+            var GetUserStore_Products_ServiceUrl = await localStorage.GetItemAsync<string>("GetUserStore_Products_ServiceUrl");
+
+            if (GetUserStore_Products_ServiceUrl == null || Store_CategoryUrl == null)
+            {
+                Store_CategoryUrl_Service = UrlService.GetUserStore_Category_ServiceUrl();
+                Store_Products = UrlService.GetUserStore_Products_ServiceUrl();
+
+                await localStorage.SetItemAsync("Store_CategoryUrl", Store_CategoryUrl_Service);
+                await localStorage.SetItemAsync("GetUserStore_Products_ServiceUrl", Store_Products);
+
+                // Данные отсутствуют - записываем их в LocalStorage
+                // await localStorage.SetItemAsync("UserServiceUrl", UserService);
+                Console.WriteLine("Данные записаны в LocalStorage");
+            }
+            else
+            {
+
+                Store_CategoryUrl_Service = Store_CategoryUrl;
+                // Данные уже существуют - используем их
+                Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
+            }
+            // Теперь можно безопасно вызывать JS interop
+            // await JSRuntime.InvokeVoidAsync("console.log", "Component fully rendered!");
+        }
+    }
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     try
+    //     {
+
+    //         GetUserStore_Category_ServiceUrl.
+    //         // Загружаем словарь URL-адресов из appsettings.json
+    //         Urls = Configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+
+    //         // Получаем URL для "Google"
+    //         Urls.TryGetValue("Store_Category", out Store_Products);
+
+
+    //         await Registration_page();
+    //     }
+    //     catch (Exception)
+    //     {
+
+    //     }
+    // }
+
+
+    // private async Task Log()
+    // {
+
+    // }
+
+    private async Task Registration_page()
+    {
+        try
+        {
+
+            // client.BaseAddress = new Uri(Store_Products);
+            var prod = await client.GetFromJsonAsync<IAsyncEnumerable<Category>>(Store_Products + "/CategoryControler");
+            // Проверяем, инициализирован ли Categories
+            if (Categories != null)
+            {
+                // Асинхронно перебираем и добавляем категории в список
+                await foreach (var category in Categories)
+                {
+                    categoryList.Add(category);
+                    // Можно обновлять UI после добавления каждого элемента
+                    // StateHasChanged();
+                }
+            }
+            else
+            {
+                // Обработка случая, когда Categories не инициализирован
+                // Например, можно вызвать метод для его инициализации
+            }
+        }
+        catch (Exception)
+        {
+
+        }
+
+    }
+
+
+}

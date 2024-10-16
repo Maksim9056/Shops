@@ -36,17 +36,26 @@ namespace Store_Users.Service
 
         public async Task<string> AuthenticateUserAsync(string email, string password)
         {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            try
             {
-                throw new Exception("Неверные учетные данные");
+
+
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
+                if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                {
+                    throw new Exception("Неверные учетные данные");
+                }
+
+                user.CreatedDate = DateTime.UtcNow;
+                //await _dbContext.SaveChangesAsync();
+
+                var token = GenerateJwtToken(user);
+                return token;
             }
-
-            user.CreatedDate = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync();
-
-            var token = GenerateJwtToken(user);
-            return token;
+            catch (Exception ex)
+            {
+               return ex.Message;
+            }
         }
 
         public async Task<User> RegisterUserAsync(User user)

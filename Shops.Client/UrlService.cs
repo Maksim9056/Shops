@@ -9,6 +9,20 @@
             Urls = configuration.GetSection("Urls").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
         }
 
+
+
+        public string GetUserStore_Products_ServiceUrl()
+        {
+            Urls.TryGetValue("Store_Products", out var userServiceUrl);
+            return userServiceUrl;
+        }
+
+        public string GetUserStore_Category_ServiceUrl()
+        {
+            Urls.TryGetValue("Store_Category", out var userServiceUrl);
+            return userServiceUrl;
+        }
+
         public string GetUserServiceUrl()
         {
             Urls.TryGetValue("UserService", out var userServiceUrl);

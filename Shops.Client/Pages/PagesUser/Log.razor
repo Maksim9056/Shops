@@ -1,7 +1,104 @@
 ﻿@page "/log"
-
+@using ShopClassLibrary.ModelShop
+@rendermode InteractiveAuto
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@inject UrlService UrlService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
 <h3>Log</h3>
 
-@code {
 
+<div>
+    <label>Почта</label>
+    <input type="email" @bind="Email">
+</div>
+
+<div>
+    <label>Пароль</label>
+    <input type="password" @bind="Password">
+</div>
+<button class="btn btn-primary" @onclick="SubmitForm">Зарегистрироваться</button>
+
+@code {
+    private bool _isInitialized;
+    private string UserService;
+    public string Password { get; set; }
+
+    public string Email { get; set; }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+
+
+            if (firstRender)
+            {
+                _isInitialized = true;
+                var Store_CategoryUrl = await localStorage.GetItemAsync<string>("UserServiceUrl");
+                var jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
+                if (jwt_token == null)
+                {
+
+
+                    if (/* GetUserStore_Products_ServiceUrl == null ||  */Store_CategoryUrl == null)
+                    {
+                        UserService = UrlService.GetUserServiceUrl();
+
+                        await localStorage.SetItemAsync("UserServiceUrl", UserService);
+
+                        // Данные отсутствуют - записываем их в LocalStorage
+                        // await localStorage.SetItemAsync("UserServiceUrl", UserService);
+                        Console.WriteLine("Данные записаны в LocalStorage");
+                    }
+                    else
+                    {
+
+                        UserService = Store_CategoryUrl;
+                        // Данные уже существуют - используем их
+                        Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
+                    }
+                }
+                else
+                {
+                    NavigationManager.NavigateTo("/");
+                }
+            }
+        }
+        catch (Exception)
+        {
+
+        }
+        // Теперь можно безопасно вызывать JS interop
+        // await JSRuntime.InvokeVoidAsync("console.log", "Component fully rendered!");
+    }
+
+
+    private async Task SubmitForm()
+    {
+        try
+        {
+            // StatusConroller / usercreate
+
+
+
+            // client.BaseAddress = new Uri(UserService );
+            var response = await client.GetAsync(UserService + $"/UserConroller/log?email={Email}&password={Password}");
+            var content = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Response content: " + content);
+            // var user = await createuser.RequestMessage.Content.ReadAsStringAsync();
+            await localStorage.SetItemAsync("jwt_token", content);
+
+            Console.WriteLine("Token:" + content);
+
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+
+        }
+    }
 }
