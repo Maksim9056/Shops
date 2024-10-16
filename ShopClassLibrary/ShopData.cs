@@ -29,6 +29,19 @@ namespace ShopClassLibrary
         public DbSet<Category> Category { get; set; }
         public DbSet<Product_category> Product_category { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);                                                                                                               
+
+            // Инициализация данных для статусов пользователей
+            modelBuilder.Entity<Status>().HasData(
+                new Status { Id = 1, StatusName = "Новый пользователь", Description = "Пользователь только что зарегистрировался" },
+                new Status { Id = 2, StatusName = "Активный", Description = "Пользователь активен в системе" },
+                new Status { Id = 3, StatusName = "Ожидание подтверждения", Description = "Пользователь ожидает подтверждения email" },
+                new Status { Id = 4, StatusName = "Заблокирован", Description = "Пользователь заблокирован из-за нарушения политики" },
+                new Status { Id =5, StatusName = "Удален", Description = "Пользователь удалил свою учетную запись" }
+            );
+        }
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{
         //    // Связь между Order и User (многие ко одному)

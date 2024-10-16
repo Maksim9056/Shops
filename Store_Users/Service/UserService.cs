@@ -54,8 +54,18 @@ namespace Store_Users.Service
             try
             {
              
+                // Хэшируем пароль пользователя
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
-         
+
+                // Проверяем, существует ли статус в базе данных
+                var existingStatus = await _dbContext.Status.FindAsync(user.Status.Id);
+                if (existingStatus != null)
+                {
+                    // Если статус существует, присоединяем его к контексту
+                    _dbContext.Entry(existingStatus).State = EntityState.Unchanged;
+                    user.Status = existingStatus; // Указываем, что это существующий статус
+                }
+
                 await   _dbContext.Users.AddAsync(user);
                 await _dbContext.SaveChangesAsync();
                 return user;

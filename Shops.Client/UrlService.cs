@@ -14,6 +14,12 @@
             Urls.TryGetValue("UserService", out var userServiceUrl);
             return userServiceUrl;
         }
+
+        public string GetStatusServiceUrl()
+        {
+            Urls.TryGetValue("Store_Status", out var userServiceUrl);
+            return userServiceUrl;
+        }
     }
 
 }

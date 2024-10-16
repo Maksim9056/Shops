@@ -19,9 +19,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store_Projects", "Store_Pro
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShopClassLibrary", "ShopClassLibrary\ShopClassLibrary.csproj", "{00374927-A131-48AE-900F-0F7AFCB301F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Store_Category", "Store_Category\Store_Category.csproj", "{A6260FD6-AE9B-4F91-93CF-E3E189F5B078}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store_Category", "Store_Category\Store_Category.csproj", "{A6260FD6-AE9B-4F91-93CF-E3E189F5B078}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Store_Product_category", "Store_Product_category\Store_Product_category.csproj", "{5AF8D9A4-6508-46F0-891A-1E883B095546}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store_Product_category", "Store_Product_category\Store_Product_category.csproj", "{5AF8D9A4-6508-46F0-891A-1E883B095546}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Store_Status", "Store_Status\Store_Status.csproj", "{8A6ABDCF-4C1E-4A5B-A77A-554A71CA51AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +71,10 @@ Global
 		{5AF8D9A4-6508-46F0-891A-1E883B095546}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5AF8D9A4-6508-46F0-891A-1E883B095546}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5AF8D9A4-6508-46F0-891A-1E883B095546}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A6ABDCF-4C1E-4A5B-A77A-554A71CA51AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A6ABDCF-4C1E-4A5B-A77A-554A71CA51AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A6ABDCF-4C1E-4A5B-A77A-554A71CA51AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A6ABDCF-4C1E-4A5B-A77A-554A71CA51AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -61,6 +61,7 @@
     private string UserService;
     public byte[] bytes;
     private bool _isInitialized;
+    private string StatusService;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -68,10 +69,13 @@
         {
             _isInitialized = true;
             var storedUsername = await localStorage.GetItemAsync<string>("UserServiceUrl");
+            var storedStatus = await localStorage.GetItemAsync<string>("StatusServiceUrl");
 
-            if (string.IsNullOrEmpty(storedUsername))
+            if (storedUsername == null || storedStatus == null)
             {
                 UserService = UrlService.GetUserServiceUrl();
+                StatusService = UrlService.GetStatusServiceUrl();
+                await localStorage.SetItemAsync("StatusServiceUrl", StatusService);
 
                 // Данные отсутствуют - записываем их в LocalStorage
                 await localStorage.SetItemAsync("UserServiceUrl", UserService);
@@ -80,8 +84,10 @@
             else
             {
                 UserService = storedUsername;
+
+                StatusService = storedStatus;
                 // Данные уже существуют - используем их
-                Console.WriteLine($"Значение из LocalStorage: {storedUsername}");
+                Console.WriteLine($"Значение из LocalStorage: {storedUsername} ,{storedStatus}");
             }
             // Теперь можно безопасно вызывать JS interop
             // await JSRuntime.InvokeVoidAsync("console.log", "Component fully rendered!");
@@ -119,18 +125,21 @@
     {
         try
         {
-
+            // StatusConroller / usercreate
             User.User_Image = bytes;
             User.IsBlocked = false;
             User.CreatedDate = DateTime.UtcNow;
-            Status status = new Status() { Id =0,StatusName="",Description=""};
+            
+            var status = await client.GetFromJsonAsync<Status>(StatusService + "/StatusConroller/usercreate");
+
+            // Status status = new Status() { Id =0,StatusName="",Description=""};
             User.Status = status;
 
             User.Orders = new List<Order>();
             User.Id = 0;
             User.PasswordHash = "";
           
-            client.BaseAddress = new Uri(UserService );
+            // client.BaseAddress = new Uri(UserService );
             var createuser = await client.PostAsJsonAsync(UserService + "/UserConroller", User);
             var user =   await  createuser.RequestMessage.Content.ReadAsStringAsync();
             Console.WriteLine(user);
