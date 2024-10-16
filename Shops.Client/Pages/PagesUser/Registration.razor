@@ -129,7 +129,7 @@
             User.User_Image = bytes;
             User.IsBlocked = false;
             User.CreatedDate = DateTime.UtcNow;
-            
+
             var status = await client.GetFromJsonAsync<Status>(StatusService + "/StatusConroller/usercreate");
 
             // Status status = new Status() { Id =0,StatusName="",Description=""};
@@ -138,11 +138,14 @@
             User.Orders = new List<Order>();
             User.Id = 0;
             User.PasswordHash = "";
-          
+
             // client.BaseAddress = new Uri(UserService );
             var createuser = await client.PostAsJsonAsync(UserService + "/UserConroller", User);
             var user =   await  createuser.RequestMessage.Content.ReadAsStringAsync();
             Console.WriteLine(user);
+            
+            NavigationManager.NavigateTo("/");
+
         }
         catch (Exception ex)
         {
