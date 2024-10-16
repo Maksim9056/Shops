@@ -18,16 +18,18 @@
 
 <div>
     <label>Пароль</label>
-    <input type="password" @bind="Password">
+    <input type="password" @bind="Passwords">
 </div>
 <button class="btn btn-primary" @onclick="SubmitForm">Зарегистрироваться</button>
 
 @code {
     private bool _isInitialized;
     private string UserService;
-    public string Password { get; set; }
 
-    public string Email { get; set; }
+    public string Passwords;
+
+    public string Email;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         try
@@ -39,6 +41,7 @@
                 _isInitialized = true;
                 var Store_CategoryUrl = await localStorage.GetItemAsync<string>("UserServiceUrl");
                 var jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
+               // await  localStorage.RemoveItemAsync("jwt_token");
                 if (jwt_token == null)
                 {
 
@@ -85,7 +88,7 @@
 
 
             // client.BaseAddress = new Uri(UserService );
-            var response = await client.GetAsync(UserService + $"/UserConroller/log?email={Email}&password={Password}");
+            var response = await client.GetAsync(UserService + $"/UserConroller/log?email={Email}&password={Passwords}");
             var content = await response.Content.ReadAsStringAsync();
             Console.WriteLine("Response content: " + content);
             // var user = await createuser.RequestMessage.Content.ReadAsStringAsync();
