@@ -51,10 +51,10 @@ namespace Store_Users.Controllers
 
         [Authorize]
         [HttpGet("check-similar")]
-        public async Task UserCheckSimular()
+        public IActionResult UserCheckSimular(string  TEST)
         {
 
-
+            return Ok( TEST+"Обратный");
         }
      
 

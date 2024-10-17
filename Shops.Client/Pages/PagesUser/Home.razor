@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using ShopClassLibrary.ModelShop
+@using System.Net.Http.Headers
 @rendermode InteractiveAuto
 @inject HttpClient client
 @inject NavigationManager NavigationManager
@@ -54,36 +55,61 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        try
         {
-            _isInitialized = true; 
-             jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
-          //   client.DefaultRequestHeaders.Authorization =
-          // new AuthenticationHeaderValue("Bearer", "ваш_JWT_токен");
-            var Store_CategoryUrl = await localStorage.GetItemAsync<string>("Store_CategoryUrl");
-            var GetUserStore_Products_ServiceUrl = await localStorage.GetItemAsync<string>("GetUserStore_Products_ServiceUrl");
 
-            if (GetUserStore_Products_ServiceUrl == null || Store_CategoryUrl == null)
+
+            if (firstRender)
             {
-                Store_CategoryUrl_Service = UrlService.GetUserStore_Category_ServiceUrl();
-                Store_Products = UrlService.GetUserStore_Products_ServiceUrl();
+                _isInitialized = true;
+                jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
+                Console.WriteLine("JWT Token: " + jwt_token);
 
-                await localStorage.SetItemAsync("Store_CategoryUrl", Store_CategoryUrl_Service);
-                await localStorage.SetItemAsync("GetUserStore_Products_ServiceUrl", Store_Products);
+                var Store_CategoryUrl = await localStorage.GetItemAsync<string>("Store_CategoryUrl");
+                var GetUserStore_Products_ServiceUrl = await localStorage.GetItemAsync<string>("GetUserStore_Products_ServiceUrl");
+                var UserServiceUrl = await localStorage.GetItemAsync<string>("UserServiceUrl");
 
-                // Данные отсутствуют - записываем их в LocalStorage
-                // await localStorage.SetItemAsync("UserServiceUrl", UserService);
-                Console.WriteLine("Данные записаны в LocalStorage");
+                if (GetUserStore_Products_ServiceUrl == null || Store_CategoryUrl == null)
+                {
+                    Store_CategoryUrl_Service = UrlService.GetUserStore_Category_ServiceUrl();
+                    Store_Products = UrlService.GetUserStore_Products_ServiceUrl();
+
+                    await localStorage.SetItemAsync("Store_CategoryUrl", Store_CategoryUrl_Service);
+                    await localStorage.SetItemAsync("GetUserStore_Products_ServiceUrl", Store_Products);
+
+                    // Данные отсутствуют - записываем их в LocalStorage
+                    // await localStorage.SetItemAsync("UserServiceUrl", UserService);
+                    Console.WriteLine("Данные записаны в LocalStorage");
+                }
+                else
+                {
+
+                    Store_CategoryUrl_Service = Store_CategoryUrl;
+                    // Данные уже существуют - используем их
+                    Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
+                }
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar?TEST=1");
+
+                // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                if (createuser.IsSuccessStatusCode)
+                {
+                    var content = await createuser.Content.ReadAsStringAsync();
+                    Console.WriteLine("Response: " + content);
+                }
+                else
+                {
+                    Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                }
+                // var user = await createuser.RequestMessage.Content.ReadAsStringAsync();
+                // Console.WriteLine(user);
+                // Теперь можно безопасно вызывать JS interop
+                // await JSRuntime.InvokeVoidAsync("console.log", "Component fully rendered!");
             }
-            else
-            {
-
-                Store_CategoryUrl_Service = Store_CategoryUrl;
-                // Данные уже существуют - используем их
-                Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
-            }
-            // Теперь можно безопасно вызывать JS interop
-            // await JSRuntime.InvokeVoidAsync("console.log", "Component fully rendered!");
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
     }
 
