@@ -27,20 +27,41 @@ namespace ShopClassLibrary
         public DbSet<Status> Status { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Category> Category { get; set; }
-        public DbSet<Product_category> Product_category { get; set; }
+        //public DbSet<Product_category> Product_category { get; set; }
 
+        public DbSet<Image> Image { get; set; }
+        public DbSet<ImageCopy> ImageCopy { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);                                                                                                               
+            try
+            {
 
-            // Инициализация данных для статусов пользователей
-            modelBuilder.Entity<Status>().HasData(
-                new Status { Id = 1, StatusName = "Новый пользователь", Description = "Пользователь только что зарегистрировался" },
-                new Status { Id = 2, StatusName = "Активный", Description = "Пользователь активен в системе" },
-                new Status { Id = 3, StatusName = "Ожидание подтверждения", Description = "Пользователь ожидает подтверждения email" },
-                new Status { Id = 4, StatusName = "Заблокирован", Description = "Пользователь заблокирован из-за нарушения политики" },
-                new Status { Id =5, StatusName = "Удален", Description = "Пользователь удалил свою учетную запись" }
-            );
+
+
+                // Инициализация данных для статусов пользователей
+                modelBuilder.Entity<Status>().HasData(
+                    new Status { Id = 1, StatusName = "Новый пользователь", Description = "Пользователь только что зарегистрировался" },
+                    new Status { Id = 2, StatusName = "Активный", Description = "Пользователь активен в системе" },
+                    new Status { Id = 3, StatusName = "Ожидание подтверждения", Description = "Пользователь ожидает подтверждения email" },
+                    new Status { Id = 4, StatusName = "Заблокирован", Description = "Пользователь заблокирован из-за нарушения политики" },
+                    new Status { Id = 5, StatusName = "Удален", Description = "Пользователь удалил свою учетную запись" },
+                   new Status { Id = 6, StatusName = "Новый товар", Description = "Товар в наличии" },
+                   new Status { Id = 7, StatusName = "Удален товар", Description = "Товар не вналичии" }
+
+                );
+                // Настройка связи один-ко-многим между Image и ImageCopy
+                modelBuilder.Entity<Image>()
+                    .HasMany(i => i.ImageCopies)
+                    .WithOne(ic => ic.Image)
+                    .HasForeignKey(ic => ic.ImageID);
+
+                base.OnModelCreating(modelBuilder);
+            }
+            catch(Exception ex) 
+            {
+                Console.WriteLine(ex.Message);
+            }
+
         }
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{

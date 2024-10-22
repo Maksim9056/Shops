@@ -1,0 +1,119 @@
+﻿@page "/products"
+@inject ProductService ProductService
+@rendermode InteractiveServer
+@inject HttpClient client
+@inject UrlService UrlService
+
+<h3>Список продуктов</h3>
+
+@if (products == null)
+{
+    <p><em>Загрузка...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Категория </th>
+                <th>Название</th>
+                <th>Изображение Категория</th>
+
+                <th>Описание</th>
+                <th>Количество</th>
+                <th>Изображение</th>
+
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product.Category_Id.Name_Category</td>
+                    <td>
+                        @if (product.Category_Id.Image_Category != null)
+                        {
+                            <img src="data:image/png;base64,@Convert.ToBase64String(product.Category_Id.Image_Category.OriginalImageData)" alt="Image" width="100" />
+                        }
+                    </td>
+                    <td>@product.Name_Product</td>
+                    <td>@product.ProductsDescription</td>
+                    <td>@product.ProductCount</td>
+                    <td>
+                        @if (product.Id_ProductDataImage != null)
+                        {
+                            <img src="data:image/png;base64,@Convert.ToBase64String(product.Id_ProductDataImage.OriginalImageData)" alt="Image" width="100" />
+                        }
+                    </td>
+                    <td>
+                        <a href="/products/edit/@product.Id">Редактировать</a> |
+                        <a href="/products/delete/@product.Id">Удалить</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a href="/products/create" class="btn btn-primary">Создать продукт</a>
+}
+
+@code {
+    private List<Product> products;
+    public string Url_Image;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Console.WriteLine($"OnInitialized вызван в {DateTime.Now}");
+
+        }
+        catch(Exception)
+        {
+            
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Console.WriteLine($"OnAfterRenderAsync вызван в {DateTime.Now}, firstRender: {firstRender}");
+
+        if (firstRender)
+        {
+            try
+            {
+                Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+
+
+                products = await ProductService.GetProductsAsync();
+
+
+                for (int i = 0; i < products.Count; i++)
+                {
+
+                    var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Category_Id.Image_Category.Id}");
+                    if (imageCategory != null)
+                    {
+                        products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
+
+                    }
+
+                    var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Id_ProductDataImage.Id}");
+                    if (imageProduct != null)
+                    {
+                        products[i].Id_ProductDataImage = new Image { Id = products[i].Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
+
+                    }
+
+                }
+                StateHasChanged();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+}
+}

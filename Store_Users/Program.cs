@@ -28,6 +28,53 @@ namespace Store_Users
             // JWT Authentication
             var aCS = builder.Configuration.GetSection("AppSettings")["Secret"];
             var key = Encoding.ASCII.GetBytes(aCS);
+
+            //builder.Services.AddAuthentication(x =>
+            //{
+            //    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //}).AddJwtBearer(x =>
+            //{
+            //    x.RequireHttpsMetadata = false;
+            //    x.SaveToken = true;
+            //    x.TokenValidationParameters = new TokenValidationParameters
+            //    {
+            //        ValidateIssuerSigningKey = true,
+            //        IssuerSigningKey = new SymmetricSecurityKey(key),
+            //        ValidateIssuer = false,
+            //        ValidateAudience = false,
+            //        ValidateLifetime = true // ¬ключите проверку времени жизни токена
+
+            //    };
+            //});
+            // CORS Configuration
+            //builder.Services.AddCors(options =>
+            //{
+            //    options.AddPolicy("AllowSpecificOrigin",
+            //        builder =>
+            //        {
+            //            builder.WithOrigins("https://localhost:7264") // ”кажите порт вашего клиента
+            //                   .AllowAnyHeader()
+            //                   .AllowAnyMethod()
+            //                   .AllowCredentials()
+
+            //                   ; // если используетс€ авторизаци€
+            //        });
+            //});
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+            });
+
+
+            //var aCS = builder.Configuration.GetSection("AppSettings")["Secret"];
+
+            //var key = Encoding.ASCII.GetBytes(aCS);
             builder.Services.AddAuthentication(x =>
             {
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -41,45 +88,9 @@ namespace Store_Users
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = true // ¬ключите проверку времени жизни токена
-
+                    ValidateAudience = false
                 };
             });
-            // CORS Configuration
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowSpecificOrigin",
-                    builder =>
-                    {
-                        builder.WithOrigins("https://localhost:7264") // ”кажите порт вашего клиента
-                               .AllowAnyHeader()
-                               .AllowAnyMethod()
-                               .AllowCredentials()
-          
-                               ; // если используетс€ авторизаци€
-                    });
-            });
-
-            //var aCS = builder.Configuration.GetSection("AppSettings")["Secret"];
-
-            // var key = Encoding.ASCII.GetBytes(aCS);
-            // builder.Services.AddAuthentication(x =>
-            // {
-            //     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            //     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            // }).AddJwtBearer(x =>
-            // {
-            //     x.RequireHttpsMetadata = false;
-            //     x.SaveToken = true;
-            //     x.TokenValidationParameters = new TokenValidationParameters
-            //     {
-            //         ValidateIssuerSigningKey = true,
-            //         IssuerSigningKey = new SymmetricSecurityKey(key),
-            //         ValidateIssuer = false,
-            //         ValidateAudience = false
-            //     };
-            // });
             builder.Services.AddHttpClient();
             builder.Services.AddMemoryCache();
             //builder.Services.AddSwaggerGen(c =>
@@ -117,11 +128,41 @@ namespace Store_Users
             //});
 
             // Swagger with JWT configuration
+            //builder.Services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Store_Users", Version = "v1" });
+
+            //    // JWT Authorization for Swagger
+            //    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            //    {
+            //        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            //        Name = "Authorization",
+            //        In = ParameterLocation.Header,
+            //        Type = SecuritySchemeType.ApiKey,
+            //        Scheme = "Bearer"
+            //    });
+
+            //    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+            //    {
+            //        {
+            //            new OpenApiSecurityScheme
+            //            {
+            //                Reference = new OpenApiReference
+            //                {
+            //                    Type = ReferenceType.SecurityScheme,
+            //                    Id = "Bearer"
+            //                },
+            //                Scheme = "oauth2",
+            //                Name = "Bearer",
+            //                In = ParameterLocation.Header,
+            //            },
+            //            new List<string>()
+            //        }
+            //    });
+            //});
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Store_Users", Version = "v1" });
-
-                // JWT Authorization for Swagger
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "API Documentation", Version = "v1" });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -131,24 +172,33 @@ namespace Store_Users
                     Scheme = "Bearer"
                 });
 
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
                 {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            },
-                            Scheme = "oauth2",
-                            Name = "Bearer",
-                            In = ParameterLocation.Header,
-                        },
-                        new List<string>()
-                    }
-                });
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
             });
+
+
+
+
+
+
+
+
+
+
+
+
 
             builder.Services.AddScoped<IUserService, UserService>();
 
@@ -167,7 +217,7 @@ namespace Store_Users
             // Add authentication and authorization
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseCors("AllowSpecificOrigin");
+            app.UseCors("AllowAll");
 
             using (var scope = app.Services.CreateScope())
             {

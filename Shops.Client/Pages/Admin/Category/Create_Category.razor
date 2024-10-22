@@ -1,0 +1,318 @@
+﻿@page "/categories/create"
+@using ShopClassLibrary.ModelShop
+@inject CategoryService CategoryService
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+@* @rendermode InteractiveAuto
+ *@
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject UrlService UrlServices
+@inject HttpClient client
+ @inject IConfiguration Configuration
+
+<h3>Создать новую категорию</h3>
+
+<EditForm Model="category" OnValidSubmit="HandleValidSubmit">
+    <div>
+        <label>Название категории:</label>
+        <InputText @bind-Value="category.Name_Category" />
+    </div>
+    <div>
+        <label>Описание категории:</label>
+        <InputTextArea @bind-Value="category.Category_Description" />
+    </div>
+    <div>
+        <label>Изображение категории:</label>
+        <InputFile OnChange="@HandleFileSelected" />
+    </div>
+    <button type="submit">Создать</button>
+</EditForm>
+
+@code {
+    Category category = new Category() ;
+    static UrlService UrlService ;
+    public  string Url_Product;
+    public  string Url_Image;
+    private  bool load = false;
+    private bool isInitialized = false;
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine($"OnInitialized вызван в {DateTime.Now}");
+
+        // if (!isInitialized)
+        // {     UrlService = UrlServices;
+
+        //     Url_Product = UrlService.GetUserStore_Products_ServiceUrl();
+        //     Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+        //     isInitialized = true;
+        //             load = true;
+
+        // }
+    }
+    // protected override  void OnInitialized()
+    // {
+
+    //     try
+    //     {
+    //         UrlService = UrlServices;
+    //         load = true;
+    //     }
+    //     catch (Exception)
+    //     {
+
+    //     }
+
+    // }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Console.WriteLine($"OnAfterRenderAsync вызван в {DateTime.Now}, firstRender: {firstRender}");
+
+        if (firstRender)
+        {
+            try
+            {
+                UrlService = UrlServices;
+                Url_Product = UrlService.GetUserStore_Category_ServiceUrl();
+                Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+
+                var Store_CategoryUrl = await localStorage.GetItemAsync<string>("Store_CategoryUrl");
+                var StoreImageUrl = await localStorage.GetItemAsync<string>("StoreImageUrl");
+
+                if (StoreImageUrl == null || Store_CategoryUrl == null)
+                {
+                    await localStorage.SetItemAsync("Store_CategoryUrl", Url_Product);
+                    await localStorage.SetItemAsync("StoreImageUrl", Url_Image);
+                    Console.WriteLine("Данные записаны в LocalStorage");
+                }
+                else
+                {
+                    Url_Product = Store_CategoryUrl;
+                    Url_Image = StoreImageUrl;
+                    Console.WriteLine($"Значения из LocalStorage: {Store_CategoryUrl}, {StoreImageUrl}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+    }
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     try
+    //     {
+    //         // OnInitialized();
+    //         // UrlService = UrlServices;
+
+    //         if (load)
+    //         {
+    //             UrlService = UrlServices;
+
+    //             var Store_CategoryUrl = await localStorage.GetItemAsync<string>("Store_CategoryUrl");
+    //             //var jwt_token = await _localStorage.GetItemAsync<string>("jwt_token");
+    //             //// await  localStorage.RemoveItemAsync("jwt_token");
+    //             //if (jwt_token == null)
+    //             //{
+    //             var StoreImageUrl = await localStorage.GetItemAsync<string>("StoreImageUrl");
+
+
+    //             if (StoreImageUrl == null || Store_CategoryUrl == null)
+    //             {
+
+    //                 Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+
+
+
+    //                 Url_Product = UrlService.GetUserStore_Products_ServiceUrl();
+
+    //                 await localStorage.SetItemAsync("Store_CategoryUrl", Url_Product);
+    //                 await localStorage.SetItemAsync("StoreImageUrl", Url_Image);
+
+    //                 // Данные отсутствуют - записываем их в LocalStorage
+    //                 // await localStorage.SetItemAsync("UserServiceUrl", UserService);
+    //                 Console.WriteLine("Данные записаны в LocalStorage");
+    //             }
+    //             else
+    //             {
+
+    //                 Url_Product = Store_CategoryUrl;
+    //                 Url_Image = StoreImageUrl;
+
+    //                 // Данные уже существуют - используем их
+    //                 Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
+    //             }
+    //             // CategoryService.Url_Product = Url_Product;
+
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //     }
+    // }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+
+            Url_Product = UrlServices.GetUserStore_Category_ServiceUrl();
+            category.Id = 0; // Установка ID для создания новой категории
+            category.Image_Category.OriginalImageData =new byte[1];
+            category.Image_Category.ImageCopies = new List<ImageCopy>();
+            var productResponse = await client.PostAsJsonAsync(Url_Product + "/CategoryControler/create", category);
+
+            if (productResponse.IsSuccessStatusCode)
+            {
+                var createdCategory = await productResponse.Content.ReadFromJsonAsync<Category>();
+                Console.WriteLine($"Category created: {createdCategory.Name_Category}");
+                NavigationManager.NavigateTo("/categories");
+            }
+            else
+            {
+                var errorMessage = await productResponse.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error creating category: {errorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
+
+    // private async Task HandleValidSubmit()
+    // {
+    //     try
+    //     {
+    //         category.Id = 0;
+
+    //         var productResponse = await client.PostAsJsonAsync(Url_Product + "/CategoryControler/create", category);
+    //         var user = await productResponse.Content.ReadAsStringAsync();
+    //         // await CreateCategoryAsync(category);
+    //         NavigationManager.NavigateTo("/categories");
+    //     }
+    //     catch (Exception ex )
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //     }
+    // }
+
+    // public async Task CreateCategoryAsync(Category category)
+    // {
+    //     try
+    //     {
+
+    //         // client.BaseAddress = new Uri(Url_Product);
+
+
+
+    //     }
+    //     catch (Exception ex)
+    //     {
+
+    //     }
+    // }
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+
+            var file = e.File;
+            var image = new Image
+                {
+                    Description = "Some description", // Ensure this field is set correctly
+                    UploadDate = DateTime.UtcNow
+                };
+            image.ImageCopies = new List<ImageCopy>(); 
+            // Using a MultipartFormDataContent to send image and data separately
+            var content = new MultipartFormDataContent();
+
+            // Read the file into a byte array
+            using (var stream = file.OpenReadStream(maxAllowedSize: 204 * 1024 * 10240)) // 100 MB limit
+            using (var memoryStream = new MemoryStream())
+            {
+                await stream.CopyToAsync(memoryStream);
+                image.OriginalImageData = memoryStream.ToArray();
+
+                // Add the image file as content
+              
+            }
+            var fileContent = new ByteArrayContent(image.OriginalImageData);
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
+            // "multipart/form-data"
+            content.Add(fileContent, "file", file.Name);
+            // Add other properties (description, upload date) as string content
+            content.Add(new StringContent(image.Description ?? "Default description"), "description"); // Ensure the description is non-empty
+            content.Add(new StringContent(image.UploadDate.ToString("o")), "uploadDate");
+            client.Timeout = TimeSpan.FromMinutes(10); // Increased timeout for slow uploads
+
+            var imageResponse = await client.PostAsync(Url_Image + "/Image/create", content);
+
+            if (imageResponse.IsSuccessStatusCode)
+            {
+
+                var response = await imageResponse.Content.ReadFromJsonAsync<Image>();
+
+                // var response = await imageResponse.Content.ReadFromJsonAsync<dynamic>();
+                Console.WriteLine($"Image created: {response.Id}");
+                category.Image_Category = response;
+            }
+            else
+            {
+                var errorMessage = await imageResponse.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error Image category: {errorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+
+    // private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    // {
+    //     try
+    //     {
+    //         Image image = new Image();
+
+    //         image.Description = "";
+    //         image.UploadDate = DateTime.UtcNow;
+    //         var file = e.File;
+    //         image.ImageCopies = new List<ImageCopy>();
+    //         using (var stream = new MemoryStream())
+    //         {
+    //             // Увеличим лимит до 100 MB
+    //             long maxFileSize = 204 * 1024 * 10240; // 100 MB
+    //             var mss = e.File.OpenReadStream(maxAllowedSize: maxFileSize);
+
+    //             // Копируем данные в память асинхронно
+    //             await mss.CopyToAsync(stream);
+    //             image.OriginalImageData = stream.ToArray();
+    //         }
+    //         client.Timeout = TimeSpan.FromMinutes(5); // Adjust the timeout for large uploads
+
+    //         var imageResponse = await client.PostAsJsonAsync(Url_Image + "/Image/create", image);
+    //         if (imageResponse.IsSuccessStatusCode)
+    //         {
+    //             var createdCategory = await imageResponse.Content.ReadFromJsonAsync<Image>();
+    //             Console.WriteLine($"Image created: {createdCategory.Id}");
+    //             category.Image_Category = createdCategory;
+    //         }
+    //         else
+    //         {
+    //             var errorMessage = await imageResponse.Content.ReadAsStringAsync();
+    //             Console.WriteLine($"Error Image category: {errorMessage}");
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //     }
+    // }
+
+
+}

@@ -14,9 +14,9 @@ namespace ShopClassLibrary.ModelShop
         public string ProductsDescription { get; set; }
 
         public long ProductCount { get; set; }
+        public Image Id_ProductDataImage { get; set; }
 
-        public byte[] ProductDataImage { get; set; }
-        public  Product_category Product_Id{ get; set; }
+        public Category Category_Id { get; set; }
         public Status Status { get; set; } // Статус связи пользователя и прав (например, "Активна", "Отменена")
 
     }

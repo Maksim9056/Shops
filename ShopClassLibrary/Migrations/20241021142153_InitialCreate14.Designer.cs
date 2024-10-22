@@ -12,8 +12,8 @@ using ShopClassLibrary;
 namespace ShopClassLibrary.Migrations
 {
     [DbContext(typeof(ShopData))]
-    [Migration("20241014143541_InitialCreate4")]
-    partial class InitialCreate4
+    [Migration("20241021142153_InitialCreate14")]
+    partial class InitialCreate14
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,9 +37,8 @@ namespace ShopClassLibrary.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<byte[]>("Image_Category")
-                        .IsRequired()
-                        .HasColumnType("bytea");
+                    b.Property<int>("Image_CategoryId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name_Category")
                         .IsRequired()
@@ -47,7 +46,62 @@ namespace ShopClassLibrary.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Image_CategoryId");
+
                     b.ToTable("Category");
+                });
+
+            modelBuilder.Entity("ShopClassLibrary.ModelShop.Image", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<byte[]>("OriginalImageData")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<DateTime>("UploadDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Image");
+                });
+
+            modelBuilder.Entity("ShopClassLibrary.ModelShop.ImageCopy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<byte[]>("CopyImageData")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<int>("FileSize")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ImageID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Resolution")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImageID");
+
+                    b.ToTable("ImageCopy");
                 });
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Order", b =>
@@ -85,6 +139,12 @@ namespace ShopClassLibrary.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<long>("Category_IdId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Id_ProductDataImageId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name_Product")
                         .IsRequired()
                         .HasColumnType("text");
@@ -93,13 +153,6 @@ namespace ShopClassLibrary.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<long>("ProductCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<byte[]>("ProductDataImage")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.Property<long>("Product_IdId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("ProductsDescription")
@@ -111,31 +164,15 @@ namespace ShopClassLibrary.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex("Category_IdId");
 
-                    b.HasIndex("Product_IdId");
+                    b.HasIndex("Id_ProductDataImageId");
+
+                    b.HasIndex("OrderId");
 
                     b.HasIndex("StatusId");
 
                     b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("ShopClassLibrary.ModelShop.Product_category", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("Name_Product_CategoryId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name_Product_CategoryId");
-
-                    b.ToTable("Product_category");
                 });
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Project", b =>
@@ -251,6 +288,38 @@ namespace ShopClassLibrary.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Status");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            Description = "Пользователь только что зарегистрировался",
+                            StatusName = "Новый пользователь"
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            Description = "Пользователь активен в системе",
+                            StatusName = "Активный"
+                        },
+                        new
+                        {
+                            Id = 3L,
+                            Description = "Пользователь ожидает подтверждения email",
+                            StatusName = "Ожидание подтверждения"
+                        },
+                        new
+                        {
+                            Id = 4L,
+                            Description = "Пользователь заблокирован из-за нарушения политики",
+                            StatusName = "Заблокирован"
+                        },
+                        new
+                        {
+                            Id = 5L,
+                            Description = "Пользователь удалил свою учетную запись",
+                            StatusName = "Удален"
+                        });
                 });
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Tasks_Shop", b =>
@@ -303,9 +372,15 @@ namespace ShopClassLibrary.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Id_User_ImageId")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsBlocked")
                         .HasColumnType("boolean");
@@ -325,19 +400,46 @@ namespace ShopClassLibrary.Migrations
                     b.Property<long>("StatusId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<byte[]>("User_Image")
-                        .IsRequired()
-                        .HasColumnType("bytea");
+                    b.Property<long>("Year")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Id_User_ImageId");
+
                     b.HasIndex("StatusId");
 
-                    b.ToTable("User");
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ShopClassLibrary.ModelShop.Category", b =>
+                {
+                    b.HasOne("ShopClassLibrary.ModelShop.Image", "Image_Category")
+                        .WithMany()
+                        .HasForeignKey("Image_CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Image_Category");
+                });
+
+            modelBuilder.Entity("ShopClassLibrary.ModelShop.ImageCopy", b =>
+                {
+                    b.HasOne("ShopClassLibrary.ModelShop.Image", "Image")
+                        .WithMany("ImageCopies")
+                        .HasForeignKey("ImageID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Order", b =>
@@ -361,15 +463,21 @@ namespace ShopClassLibrary.Migrations
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Product", b =>
                 {
+                    b.HasOne("ShopClassLibrary.ModelShop.Category", "Category_Id")
+                        .WithMany()
+                        .HasForeignKey("Category_IdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ShopClassLibrary.ModelShop.Image", "Id_ProductDataImage")
+                        .WithMany()
+                        .HasForeignKey("Id_ProductDataImageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ShopClassLibrary.ModelShop.Order", null)
                         .WithMany("Idproduct")
                         .HasForeignKey("OrderId");
-
-                    b.HasOne("ShopClassLibrary.ModelShop.Product_category", "Product_Id")
-                        .WithMany()
-                        .HasForeignKey("Product_IdId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.HasOne("ShopClassLibrary.ModelShop.Status", "Status")
                         .WithMany()
@@ -377,20 +485,11 @@ namespace ShopClassLibrary.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Product_Id");
+                    b.Navigation("Category_Id");
+
+                    b.Navigation("Id_ProductDataImage");
 
                     b.Navigation("Status");
-                });
-
-            modelBuilder.Entity("ShopClassLibrary.ModelShop.Product_category", b =>
-                {
-                    b.HasOne("ShopClassLibrary.ModelShop.Category", "Name_Product_Category")
-                        .WithMany()
-                        .HasForeignKey("Name_Product_CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Name_Product_Category");
                 });
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Project", b =>
@@ -479,13 +578,26 @@ namespace ShopClassLibrary.Migrations
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.User", b =>
                 {
+                    b.HasOne("ShopClassLibrary.ModelShop.Image", "Id_User_Image")
+                        .WithMany()
+                        .HasForeignKey("Id_User_ImageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ShopClassLibrary.ModelShop.Status", "Status")
                         .WithMany()
                         .HasForeignKey("StatusId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Id_User_Image");
+
                     b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("ShopClassLibrary.ModelShop.Image", b =>
+                {
+                    b.Navigation("ImageCopies");
                 });
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Order", b =>

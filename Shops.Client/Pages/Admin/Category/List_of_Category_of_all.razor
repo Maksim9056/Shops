@@ -1,0 +1,203 @@
+﻿@page "/categories"
+@using ShopClassLibrary.ModelShop
+@inject CategoryService CategoryService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject UrlService UrlService
+<h3>Все категории</h3>
+@inject HttpClient client
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Описание</th>
+            <th>Изображение</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Categories != null)
+        {
+
+
+            @foreach (var category in Categories)
+            {
+                <tr>
+                    <td>@category.Name_Category</td>
+                    <td>@category.Category_Description</td>
+                    <td>
+                        @if (category.Image_Category != null)
+                        {
+                            <img src="data:image/png;base64,@Convert.ToBase64String(category.Image_Category.OriginalImageData)" alt="Image" width="100" />
+                        }
+                    </td>
+                    <td>
+                        <button @onclick="() => EditCategory(category.Id)">Редактировать</button>
+                        <button @onclick="() => DeleteCategory(category.Id)">Удалить</button>
+                    </td>
+                </tr>
+            }   }
+    </tbody>
+</table>
+
+<button @onclick="CreateCategory">Создать новую категорию</button>
+
+@code {
+    // private List<Category> Categories;
+    // public string Url_Product;
+    // public string Url_Image;
+    private List<Category> Categories;
+    public string Url_Product;
+    public string Url_Image;
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine($"OnInitialized вызван в {DateTime.Now}");
+
+
+       
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Console.WriteLine($"OnAfterRenderAsync вызван в {DateTime.Now}, firstRender: {firstRender}");
+
+        if (firstRender)
+        {
+            try
+            {
+                
+
+                Url_Product = UrlService.GetUserStore_Category_ServiceUrl();
+                Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+
+                var Store_CategoryUrl = await localStorage.GetItemAsync<string>("Store_CategoryUrl");
+                var StoreImageUrl = await localStorage.GetItemAsync<string>("StoreImageUrl");
+
+                if (StoreImageUrl == null || Store_CategoryUrl == null)
+                {
+                    await localStorage.SetItemAsync("Store_CategoryUrl", Url_Product);
+                    await localStorage.SetItemAsync("StoreImageUrl", Url_Image);
+                    Console.WriteLine("Данные записаны в LocalStorage");
+                }
+                else
+                {
+                    Url_Product = Store_CategoryUrl;
+                    Url_Image = StoreImageUrl;
+                    Console.WriteLine($"Значения из LocalStorage: {Store_CategoryUrl}, {StoreImageUrl}");
+                }
+
+                await Check();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+    }
+
+    public async Task Check()
+    {
+
+        Url_Product = UrlService.GetUserStore_Category_ServiceUrl();
+        Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+        Console.WriteLine($"OnInitialized вызван в {DateTime.Now}");
+        // CategoryService.Url_Product = Url_Product;
+        Categories = await client.GetFromJsonAsync<List<ShopClassLibrary.ModelShop.Category>>(Url_Product + "/CategoryControler/all");
+        for (int i = 0; i < Categories.Count; i++)
+        {
+            var image = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{Categories[i].Image_Category.Id}");
+            if (image != null)
+            {
+                Categories[i].Image_Category = new Image { Id = Categories[i].Image_Category.Id, OriginalImageData = image.CopyImageData };
+
+            }
+
+        }
+        // Categories = await CategoryService.GetAllCategoriesAsync();
+        StateHasChanged();
+    }
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     Url_Product = UrlService.GetUserStore_Category_ServiceUrl();
+    //     Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+
+    //     await localStorage.SetItemAsync("Store_CategoryUrl", Url_Product);
+    //     await localStorage.SetItemAsync("StoreImageUrl", Url_Image);
+
+    //     await LoadCategories();
+    // }
+
+    // private async Task LoadCategories()
+    // {
+    //     Categories = await client.GetFromJsonAsync<List<Category>>(Url_Product + "/CategoryControler/all");
+
+    //     foreach (var category in Categories)
+    //     {
+    //         var image = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{category.Image_Category.Id}");
+    //         if (image != null)
+    //         {
+    //             category.Image_Category = new Image
+    //                 {
+    //                     Id = category.Image_Category.Id,
+    //                     OriginalImageData = image.CopyImageData
+    //                 };
+    //         }
+    //     }
+    // }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     try
+    //     {
+
+
+    //          // CategoryService.UrlS();
+
+    //     }
+    //     catch (Exception)
+    //     {
+
+    //     }
+    // }
+
+    private void CreateCategory()
+    {
+        try
+        {
+            NavigationManager.NavigateTo("/categories/create");
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private void EditCategory(long id)
+    {
+        try
+        {
+            NavigationManager.NavigateTo($"/categories/edit/{id}");
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private async Task DeleteCategory(long id)
+    {
+        try
+        {
+            await CategoryService.DeleteCategoryAsync(id);
+            await OnAfterRenderAsync(true);
+            // Categories = await CategoryService.GetAllCategoriesAsync();
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+}

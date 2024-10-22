@@ -16,34 +16,138 @@ namespace Store_Products.Controllers
         {
             _context = context;
         }
+        //[HttpGet]
+        //public  async Task<Product[]> ProductAll()
+        //{
+        //    Product[] products = new Product[1];
+        //    return products;
+        //}
+        // GET: api/Products
         [HttpGet]
-        public  async Task<Product[]> ProductAll()
-        {
-            Product[] products = new Product[1];
-            return products;
-        }
-
-
-        [HttpPost]
-        public async Task<IActionResult> ProductCreate([FromBody] Product Product)
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
             try
             {
-
-
-                await _context.Products.AddAsync(Product);
-                await _context.SaveChangesAsync();
-              Product  =   await _context.Products.Include(u =>u.Status).FirstOrDefaultAsync(u =>u.Name_Product == Product.Name_Product && u.ProductsDescription == Product.ProductsDescription);
-            } catch (Exception ex)
-            {
-                Problem(ex.Message);
-            }finally
-            {
+                return await _context.Products.Include(u =>u.Id_ProductDataImage).Include(u => u.Category_Id.Image_Category).ToListAsync();
 
             }
-
-            return CreatedAtAction($"POST-запрос успешно обработан! Данные: {Product.Name_Product}, {Product.ProductCount}", Product);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
+        // GET: api/Products/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Product>> GetProduct(long id)
+        {
+            var product = await _context.Products.FindAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return product;
+                
+        }
+
+
+        // POST: api/Products
+        [HttpPost("create")]
+        public async Task<ActionResult> PostProduct([FromBody] Product product)
+        {
+            try
+            {
+                var CategoryImage = await _context.Category.Include(u => u.Image_Category.ImageCopies).FirstOrDefaultAsync(U => U.Id == product.Category_Id.Id);
+
+                var productImage = await _context.Image.Include(u => u.ImageCopies).FirstOrDefaultAsync(U => U.Id == product.Id_ProductDataImage.Id);
+                if (productImage == null)
+                {
+                    return BadRequest("Invalid Image data.");
+                }
+
+                var productStatus = await _context.Status.FirstOrDefaultAsync(U => U.Id == product.Status.Id);
+                if (productStatus == null)
+                {
+                    return BadRequest("Invalid Status data.");
+                }
+
+                if (productImage != null)
+                {// Если статус существует, присоединяем его к контексту
+
+       
+
+                    _context.Entry(productImage).State = EntityState.Unchanged;
+                    product.Id_ProductDataImage = productImage;
+                    _context.Entry(productStatus).State = EntityState.Unchanged;
+
+                    product.Status = productStatus;
+                    _context.Entry(CategoryImage).State = EntityState.Unchanged;
+                    product.Category_Id = CategoryImage;
+
+                }
+
+
+                await _context.Products.AddAsync(product);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { id = product.Id, product });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // PUT: api/Products/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutProduct(long id, Product product)
+        {
+            if (id != product.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(product).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Products.Any(e => e.Id == id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // DELETE: api/Products/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProduct(long id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
 
     }
 }

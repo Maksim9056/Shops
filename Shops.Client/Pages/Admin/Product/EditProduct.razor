@@ -1,0 +1,44 @@
+﻿@page "/products/edit/{id:long}"
+@inject ProductService ProductService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<h3>Редактировать продукт</h3>
+
+<EditForm Model="product" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Name_Product">Название продукта</label>
+        <InputText id="Name_Product" class="form-control" @bind-Value="product.Name_Product" />
+    </div>
+
+    <div class="form-group">
+        <label for="ProductsDescription">Описание продукта</label>
+        <InputTextArea id="ProductsDescription" class="form-control" @bind-Value="product.ProductsDescription" />
+    </div>
+
+    <div class="form-group">
+        <label for="ProductCount">Количество</label>
+        <InputNumber id="ProductCount" class="form-control" @bind-Value="product.ProductCount" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</EditForm>
+
+@code {
+    [Parameter] public long id { get; set; }
+    private Product product = new Product();
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetProductByIdAsync(id);
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await ProductService.UpdateProductAsync(product);
+        Navigation.NavigateTo("/products");
+    }
+}

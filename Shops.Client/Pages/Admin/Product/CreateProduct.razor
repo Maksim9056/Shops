@@ -1,0 +1,143 @@
+﻿@page "/products/create"
+@using Shops.Client.Pages.Admin.Category
+@using Shops.Client.Service
+@inject ProductService ProductService
+@rendermode InteractiveServer
+@inject ImageService ImageService
+@inject NavigationManager Navigation
+@inject CategoryService CategoryService
+@inject UrlService UrlService
+<h3>Создать продукт</h3>
+
+<EditForm Model="product" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="Name_Product">Название продукта</label>
+        <InputText id="Name_Product" class="form-control" @bind-Value="product.Name_Product" />
+    </div>
+
+    <div class="form-group">
+        <label for="ProductsDescription">Описание продукта</label>
+        <InputTextArea id="ProductsDescription" class="form-control" @bind-Value="product.ProductsDescription" />
+    </div>
+
+    <div class="form-group">
+        <label for="ProductCount">Количество</label>
+        <InputNumber id="ProductCount" class="form-control" @bind-Value="product.ProductCount" />
+    </div>
+
+
+    <div class="form-group">
+        <label for="Category">Категория</label>
+        @if (categories.Count > 0)
+        {
+            <div>
+                @foreach (var category in categories)
+                {
+                    <div>
+                        <label>
+                            <input type="checkbox" @onchange="@(e => ToggleSelection(category))" />
+                            @category.Name_Category
+                        </label>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="form-group">
+        <label for="Image">Загрузить изображение</label>
+        <InputFile OnChange="HandleFileSelected" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</EditForm>
+
+@* <option @onchange="ToggleSelection(category)" value="@category.Id">@category.Name_Category</option>
+ *@
+@code {
+    public Product product = new Product() { Category_Id = new Category() { Id = 0 } };
+    // private IBrowserFile selectedFile;
+    private List<Category> categories = new List<Category>();
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            categories = await CategoryService.GetCategoriesAsync();
+            StateHasChanged();
+
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private void    ToggleSelection(Category Category)
+    {
+        try
+        {
+            Category.Image_Category.OriginalImageData = new byte[1];
+            Category.Image_Category.ImageCopies = new List<ImageCopy>();
+            product.Category_Id = Category;
+            // if (product.Category_Id.(Category))
+            // {
+            //     FriendsSelect.Remove(user); // Если уже выбран, удаляем из списка выбранных
+            // }
+            // else
+            // {
+            //     FriendsSelect.Add(user); // Если не выбран, добавляем в список выбранных
+            // }
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+
+
+
+            // selectedFile = e.File;
+            var result = await ImageService.UploadImageAsync(e.File, "Описание изображения");
+            product.Id_ProductDataImage = result;
+        }
+        catch (Exception EX)
+        {
+            Console.WriteLine(EX.Message);
+        }
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+
+            product.Id = 0;
+
+            product.Status = new Status() { Id = 6, Description = "", StatusName = "" };
+            product.Id_ProductDataImage.OriginalImageData = new byte[1];
+            product.Id_ProductDataImage.ImageCopies = new List<ImageCopy>();
+            // if (selectedFile != null)
+            // {
+            // }
+            // product.Status;
+            var products =  await ProductService.CreateProductAsync(product);
+       
+
+            Navigation.NavigateTo("/products");
+        }
+        catch (Exception)
+        {
+            Console.WriteLine();
+        }
+    }
+}

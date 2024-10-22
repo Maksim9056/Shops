@@ -19,6 +19,16 @@ namespace Store_Category
             builder.Services.AddDbContext<ShopData>(options =>
 
            options.UseNpgsql(builder.Configuration.GetConnectionString("Shop")));
+            builder.Services.AddHttpClient();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -31,7 +41,7 @@ namespace Store_Category
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+            app.UseCors("AllowAll");
             using (var scope = app.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ShopData>();

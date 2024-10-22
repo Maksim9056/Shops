@@ -22,6 +22,7 @@ namespace Store_Users.Controllers
         private readonly IUserService _IUserService;
 
         private readonly ShopData _context;
+
         public UserConroller(ShopData context, IMemoryCache cache, IConfiguration config, IUserService iUserService)
         {
             _cache = cache;

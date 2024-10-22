@@ -2,6 +2,9 @@ using Blazored.LocalStorage;
 using Microsoft.Extensions.Configuration;
 using Shops.Client;
 using Shops.Client.Pages;
+using Shops.Client.Pages.Admin.Category;
+using Shops.Client.Pages.Admin.Product;
+using Shops.Client.Service;
 using Shops.Components;
 
 namespace Shops
@@ -17,10 +20,18 @@ namespace Shops
                 .AddInteractiveServerComponents()
                 .AddInteractiveWebAssemblyComponents();
             builder.Services.AddHttpClient();
+            builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
             // Загружаем словарь URL-адресов
             var urls = builder.Configuration.GetSection("Urls").Get<Dictionary<string, string>>();
             builder.Services.AddLogging();
             builder.Services.AddScoped<UrlService>();
+            builder.Services.AddScoped<CategoryService>();
+            builder.Services.AddScoped<ProductService>();
+            builder.Services.AddScoped<ImageService>();
+
+            builder.Services.AddBlazoredLocalStorage();
+
 
             // Проверяем и выводим загруженные данные
             if (urls != null)
@@ -56,11 +67,14 @@ namespace Shops
 
             app.UseStaticFiles();
             app.UseAntiforgery();
+            //app.MapRazorComponents<App>()
+            // .AddInteractiveServerRenderMode(); // Уберите WebAssembly render mode
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode()
                 .AddInteractiveWebAssemblyRenderMode()
-                .AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
+                .AddAdditionalAssemblies(typeof(Client._Imports).Assembly)
+                .AddInteractiveServerRenderMode();
 
             app.Run();
         }

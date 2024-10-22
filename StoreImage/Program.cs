@@ -1,8 +1,11 @@
 
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ShopClassLibrary;
 
-namespace Store_Products
+namespace StoreImage
 {
     public class Program
     {
@@ -12,13 +15,12 @@ namespace Store_Products
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddHttpClient();
             builder.Services.AddDbContext<ShopData>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("Shop")));
+                options.UseNpgsql(builder.Configuration.GetConnectionString("Shop")));
+            builder.Services.AddHttpClient();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -28,11 +30,36 @@ namespace Store_Products
                            .AllowAnyHeader();
                 });
             });
+
+            builder.Services.AddScoped<ImageService>();
+
+            //services.AddControllers();
+            builder.Services.AddControllers();
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
                 serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5); // Тайм-аут удержания соединения
                 serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // Тайм-аут для заголовков
             });
+
+
+            //builder.WebHost.ConfigureKestrel(serverOptions =>
+            //{
+            //    serverOptions.Limits.MaxRequestBodySize = 1024 * 1024 * 100; // 100 MB
+
+            //    serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(15); // Time allowed for request headers to be received
+
+            //    serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(15); // Keep connection alive for 5 minutes
+
+            //    serverOptions.Limits.MinRequestBodyDataRate = new MinDataRate(bytesPerSecond: 50, gracePeriod: TimeSpan.FromSeconds(3)); // More flexible for slower connections
+            //});
+
+            builder.Logging.AddConsole();
+            builder.Logging.SetMinimumLevel(LogLevel.Debug);
+            builder.Services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 1024 * 1024 * 100; // 100 MB
+            });
+
 
             var app = builder.Build();
 
@@ -42,6 +69,7 @@ namespace Store_Products
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
             app.UseCors("AllowAll");
 
             app.UseHttpsRedirection();

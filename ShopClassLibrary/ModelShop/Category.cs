@@ -11,7 +11,7 @@ namespace ShopClassLibrary.ModelShop
         public long Id { get; set; }
         public string Name_Category { get; set; }
         public string Category_Description { get; set; }
+        public Image Image_Category { get; set; }
 
-        public  byte[] Image_Category { get; set; }
     }
 }

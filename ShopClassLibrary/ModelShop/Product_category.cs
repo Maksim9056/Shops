@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace ShopClassLibrary.ModelShop
 {
-    public class Product_category
-    {
-        public long Id { get; set; }
-        public Category Name_Product_Category { get; set; }
+    //public class Product_category
+    //{
+    //    public long Id { get; set; }
+    //    public Category Name_Product_Category { get; set; }
 
 
-    }
+    //}
 }

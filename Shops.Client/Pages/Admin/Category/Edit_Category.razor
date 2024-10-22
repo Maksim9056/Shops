@@ -1,0 +1,195 @@
+﻿@page "/categories/edit/{id:long}"
+@rendermode InteractiveServer
+@using ShopClassLibrary.ModelShop
+@inject CategoryService CategoryService
+@inject NavigationManager NavigationManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject UrlService UrlServices
+@inject HttpClient client
+
+<h3>Редактировать категорию</h3>
+
+<EditForm Model="category" OnValidSubmit="HandleValidSubmit">
+    <div>
+        <label>Название категории:</label>
+        <InputText @bind-Value="category.Name_Category" />
+    </div>
+    <div>
+        <label>Описание категории:</label>
+        <InputTextArea @bind-Value="category.Category_Description" />
+    </div>
+    <div>
+        <label>Изображение категории:</label>
+        <InputFile OnChange="HandleFileSelected" />
+    </div>
+    <button type="submit">Сохранить изменения</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public long Id { get; set; }
+    public string Url_Product;
+    private Category category = new Category();
+    public string Url_Image;
+    UrlService UrlService;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            UrlService = UrlServices;
+            // await OnAfterRenderAsync(true);
+        }
+        catch (Exception)
+        {
+
+        }
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            OnInitialized();
+
+
+            if (firstRender)
+            {
+                var Store_CategoryUrl = await localStorage.GetItemAsync<string>("Store_CategoryUrl");
+                //var jwt_token = await _localStorage.GetItemAsync<string>("jwt_token");
+                //// await  localStorage.RemoveItemAsync("jwt_token");
+                //if (jwt_token == null)
+                //{
+                var StoreImageUrl = await localStorage.GetItemAsync<string>("StoreImageUrl");
+
+
+                if (StoreImageUrl == null || Store_CategoryUrl == null)
+                {
+
+                    Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+
+
+
+                    Url_Product = UrlService.GetUserStore_Products_ServiceUrl();
+
+                    await localStorage.SetItemAsync("Store_CategoryUrl", Url_Product);
+                    await localStorage.SetItemAsync("StoreImageUrl", Url_Image);
+
+                    // Данные отсутствуют - записываем их в LocalStorage
+                    // await localStorage.SetItemAsync("UserServiceUrl", UserService);
+                    Console.WriteLine("Данные записаны в LocalStorage");
+                }
+                else
+                {
+
+                    Url_Product = Store_CategoryUrl;
+                    Url_Image = StoreImageUrl;
+                    // CategoryService.Url_Product = Url_Product;
+
+                    // Данные уже существуют - используем их
+                    Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
+                }
+         
+
+                // category = await client.GetFromJsonAsync<ShopClassLibrary.ModelShop.Category>(Url_Product + $"/CategoryControler/Id{Id}");
+                  category = await CategoryService.GetCategoryByIdAsync(Id);
+                StateHasChanged();
+            }
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     try
+    //     {
+    //          // CategoryService.UrlS();
+
+    //         category = await CategoryService.GetCategoryByIdAsync(Id);
+    //     }
+    //     catch (Exception)
+    //     {
+
+    //     }
+    // }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await CategoryService.UpdateCategoryAsync(category);
+            NavigationManager.NavigateTo("/categories");
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            Image image = new Image();
+
+            image.Description = "";
+            image.UploadDate = DateTime.Now;
+            var file = e.File;
+            using (var stream = new MemoryStream())
+            {
+                // Увеличим лимит до 100 MB
+                long maxFileSize = 204 * 1024 * 10240; // 100 MB
+                var mss = e.File.OpenReadStream(maxAllowedSize: maxFileSize);
+
+                // Копируем данные в память асинхронно
+                await mss.CopyToAsync(stream);
+                image.OriginalImageData = stream.ToArray();
+            }
+
+            var imageResponse = await client.PostAsJsonAsync(Url_Image + "/ImageContoller/create", image);
+            if (imageResponse.IsSuccessStatusCode)
+            {
+                var createdCategory = await imageResponse.Content.ReadFromJsonAsync<Image>();
+                Console.WriteLine($"Image created: {createdCategory.Id}");
+                category.Image_Category = createdCategory;
+            }
+            else
+            {
+                var errorMessage = await imageResponse.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error Image category: {errorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    // private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    // {
+    //     try
+    //     {
+    //         var file = e.File;
+    //         using (MemoryStream ms = new MemoryStream())
+    //         {
+    //             // Увеличим лимит до 100 MB
+    //             // 100 MB
+    //             var mss = e.File.OpenReadStream(204 * 1024 * 10240);
+
+    //             // Копируем данные в память асинхронно
+    //             await mss.CopyToAsync(ms);
+    //             category.Image_Category.OriginalImageData = ms.ToArray();
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine(ex.Message);
+    //     }
+    // }
+
+
+}

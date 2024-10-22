@@ -1,7 +1,7 @@
 ﻿@page "/"
 @using ShopClassLibrary.ModelShop
 @using System.Net.Http.Headers
-@rendermode InteractiveAuto
+@rendermode InteractiveServer
 @inject HttpClient client
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
@@ -9,8 +9,8 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IJSRuntime JSRuntime
 @inject IConfiguration Configuration
-<PageTitle>Home</PageTitle>
-
+@* <PageTitle>Home</PageTitle>
+ *@
 
 @* <input type="email" @bind="Searh_input" />
  *@@* <div>
@@ -25,30 +25,34 @@
 
 <button @onclick=Log>Вход</button>
  *@
-@if (Categories != null)
+
+@if (categoryList.Count() > 0)
 {
     @foreach (var category in categoryList)
     {
         <li>@category.Name_Category</li>
-        <img src="data:image/png;base64,@Convert.ToBase64String(category.Image_Category)" alt="Category" @* @onclick="" *@>
+        @if (@category.Image_Category != null)
+        {
+            <img src="data:image/png;base64,@Convert.ToBase64String(category.Image_Category.OriginalImageData)" alt="Image" width="500" />
+
+        }
 
     }
 
-    { }
+    
 }
 
 
 @code
 {
 
-    public IAsyncEnumerable<Category> Categories;
     private string Searh_input;
     private List<Category> categoryList = new List<Category>();
 
     private string Store_Products;
     private Dictionary<string, string> Urls = new Dictionary<string, string>();
     public Product[] Products;
-
+    public string Url_Image;
     private bool _isInitialized;
     private string Store_CategoryUrl_Service;
     private string jwt_token{ get; set; }
@@ -64,9 +68,9 @@
                 _isInitialized = true;
                 jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
                 Console.WriteLine("JWT Token: " + jwt_token);
-
+                await localStorage.RemoveItemAsync("Store_CategoryUrl");
                 var Store_CategoryUrl = await localStorage.GetItemAsync<string>("Store_CategoryUrl");
-                var GetUserStore_Products_ServiceUrl = await localStorage.GetItemAsync<string>("GetUserStore_Products_ServiceUrl");
+                var GetUserStore_Products_ServiceUrl = await localStorage.GetItemAsync<string>("Store_CategoryUrl");
                 var UserServiceUrl = await localStorage.GetItemAsync<string>("UserServiceUrl");
 
                 if (GetUserStore_Products_ServiceUrl == null || Store_CategoryUrl == null)
@@ -75,7 +79,7 @@
                     Store_Products = UrlService.GetUserStore_Products_ServiceUrl();
 
                     await localStorage.SetItemAsync("Store_CategoryUrl", Store_CategoryUrl_Service);
-                    await localStorage.SetItemAsync("GetUserStore_Products_ServiceUrl", Store_Products);
+                    await localStorage.SetItemAsync("GetUserStore_Products_ServiceUrl", GetUserStore_Products_ServiceUrl);
 
                     // Данные отсутствуют - записываем их в LocalStorage
                     // await localStorage.SetItemAsync("UserServiceUrl", UserService);
@@ -85,6 +89,7 @@
                 {
 
                     Store_CategoryUrl_Service = Store_CategoryUrl;
+                    Store_Products = Store_CategoryUrl;
                     // Данные уже существуют - используем их
                     Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
                 }
@@ -105,6 +110,8 @@
                 // Console.WriteLine(user);
                 // Теперь можно безопасно вызывать JS interop
                 // await JSRuntime.InvokeVoidAsync("console.log", "Component fully rendered!");
+                await Registration_page();
+
             }
         }
         catch(Exception ex)
@@ -146,23 +153,69 @@
         {
 
             // client.BaseAddress = new Uri(Store_Products);
-            var prod = await client.GetFromJsonAsync<IAsyncEnumerable<Category>>(Store_Products + "/CategoryControler");
-            // Проверяем, инициализирован ли Categories
-            if (Categories != null)
+            // Categories = await client.GetFromJsonAsync<IAsyncEnumerable<Category>>(Store_Products + "/CategoryControler");
+            // var categoryList = await client.GetFromJsonAsync<List<Category>>(Store_Products + "/CategoryControler/all");
+
+            // var tasks = categoryList.Select(async category =>
+            // {
+            //     var image = await client.GetFromJsonAsync<byte[]>(Store_Products + $"/CategoryControler/fille{category.Id}");
+            //     if (image != null)
+            //     {
+            //         category.Image_Category = image;
+            //     }
+            // });
+
+            // await Task.WhenAll(tasks);
+            Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+            //Работает
+            client.DefaultRequestHeaders.Authorization = null;
+            categoryList = await client.GetFromJsonAsync<List<ShopClassLibrary.ModelShop.Category>>(Store_CategoryUrl_Service + "/CategoryControler/all");
+            for (int i = 0; i < categoryList.Count; i++)
             {
-                // Асинхронно перебираем и добавляем категории в список
-                await foreach (var category in Categories)
+                var image = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{categoryList[i].Image_Category.Id}");
+                if (image != null)
                 {
-                    categoryList.Add(category);
-                    // Можно обновлять UI после добавления каждого элемента
-                    // StateHasChanged();
+                    categoryList[i].Image_Category = new Image { Id = categoryList[i].Image_Category.Id, OriginalImageData = image.CopyImageData };
+
                 }
+
             }
-            else
-            {
-                // Обработка случая, когда Categories не инициализирован
-                // Например, можно вызвать метод для его инициализации
-            }
+            // categoryList = await client.GetFromJsonAsync<List<Category>>(Store_Products + "/CategoryControler/all");
+
+            // for (int i=0; i< categoryList.Count; i++)
+            // {
+            //     var image = await client.GetFromJsonAsync<byte[]>(Store_Products + $"/CategoryControler/fille{categoryList[i].Id}");
+            //     if (image != null)
+            //     {
+            //         categoryList[i].Image_Category = image;
+
+            //     }
+
+            // }
+
+            // foreach (var Category in categoryList)
+            // {
+            //     await client.GetFromJsonAsync<List<Category>>(Store_Products + "/CategoryControler/all");
+
+            // }
+            // Проверяем, инициализирован ли Categories
+            // if (Categories != null)
+            // {
+            //     // Асинхронно перебираем и добавляем категории в список
+            //     await foreach (var category in Categories)
+            //     {
+            //         categoryList.Add(category);
+            //         // Можно обновлять UI после добавления каждого элемента
+            //         // StateHasChanged();
+            //     }
+            // }
+            // else
+            // {
+            //     // Обработка случая, когда Categories не инициализирован
+            //     // Например, можно вызвать метод для его инициализации
+            // }
+            StateHasChanged();
+
         }
         catch (Exception)
         {

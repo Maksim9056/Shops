@@ -1,0 +1,21 @@
+﻿@page "/products/delete/{id:long}"
+@inject ProductService ProductService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<h3>Удалить продукт</h3>
+
+<p>Вы уверены, что хотите удалить этот продукт?</p>
+
+<button class="btn btn-danger" @onclick="DeleteProducts">Удалить</button>
+<a href="/products" class="btn btn-secondary">Отмена</a>
+
+@code {
+    [Parameter] public long id { get; set; }
+
+    private async Task DeleteProducts()
+    {
+        await ProductService.DeleteProductAsync(id);
+        Navigation.NavigateTo("/products");
+    }
+}
