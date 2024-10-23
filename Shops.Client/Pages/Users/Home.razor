@@ -9,23 +9,72 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject IJSRuntime JSRuntime
 @inject IConfiguration Configuration
-@* <PageTitle>Home</PageTitle>
- *@
 
-@* <input type="email" @bind="Searh_input" />
- *@@* <div>
-    <p>Почта</p>
-    <input type="email" @bind="" />
-</div>
 
-<div>
-    <p>Пароль</p>
-    <input type="password" @bind="" />
-</div>
+@if (categoryList.Count() > 0)
+{
+    <div class="category-grid">
+        @foreach (var category in categoryList)
+        {
+            <div class="category-card">
+                <h3 class="category-name">@category.Name_Category</h3>
+                @if (category.Image_Category != null)
+                {
+                    <a @onclick="() => NavigateToCategoryPage(category.Id)">
+                        <img src="data:image/png;base64,@Convert.ToBase64String(category.Image_Category.OriginalImageData)" alt="@category.Name_Category" class="category-image" />
+                    </a>
+                }
+            </div>
+        }
+    </div>
+}
 
-<button @onclick=Log>Вход</button>
- *@
+<style>
+    /* Сетка для категорий */
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin: 20px;
+    }
 
+    /* Карточка для категории */
+    .category-card {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 15px;
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        background-color: #fff;
+        cursor: pointer;
+    }
+
+        .category-card:hover {
+            transform: scale(1.05);
+        }
+
+    /* Название категории */
+    .category-name {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    /* Изображение категории */
+    .category-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        transition: opacity 0.3s ease;
+    }
+
+        .category-image:hover {
+            opacity: 0.8;
+        }
+</style>
+
+@* 
 @if (categoryList.Count() > 0)
 {
     @foreach (var category in categoryList)
@@ -33,14 +82,20 @@
         <li>@category.Name_Category</li>
         @if (@category.Image_Category != null)
         {
-            <img src="data:image/png;base64,@Convert.ToBase64String(category.Image_Category.OriginalImageData)" alt="Image" width="500" />
+                        <a @onclick="() => NavigateToCategoryPage(category.Id)">
+
+                <img src="data:image/png;base64,@Convert.ToBase64String(category.Image_Category.OriginalImageData)" alt="Image" width="500" />
+
+
+            </a>
+
 
         }
 
     }
 
-    
-}
+
+} *@
 
 
 @code
@@ -55,7 +110,19 @@
     public string Url_Image;
     private bool _isInitialized;
     private string Store_CategoryUrl_Service;
-    private string jwt_token{ get; set; }
+    private string jwt_token { get; set; }
+    // Метод для навигации на страницу с выбранной категорией
+    private void NavigateToCategoryPage(long categoryId)
+    {
+        try
+        {
+            NavigationManager.NavigateTo($"/category/{categoryId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -114,7 +181,7 @@
 
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }

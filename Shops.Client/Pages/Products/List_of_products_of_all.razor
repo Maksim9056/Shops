@@ -1,5 +1,231 @@
-﻿<h3>List_of_products_of_all</h3>
+﻿@page "/category/{id:long}"
+@using ShopClassLibrary.ModelShop
+@using System.Net.Http.Headers
+@using Shops.Client.Pages.Admin.Category
+@using Shops.Client.Pages.Admin.Product
+@using Shops.Client.Pages.Orders
+@rendermode InteractiveServer
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@inject UrlService UrlService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
+@inject ProductService ProductService
+@inject CategoryService CategoryService
+@inject OrderService OrderService
+
+@if (Category != null)
+{
+    <h3 class="category-title">@Category.Name_Category</h3>
+
+}
+@* <h3 class="category-title">Products in the selected category</h3>
+ *@
+@if (products != null && products.Count > 0)
+{
+    <div class="product-grid">
+        @foreach (var product in products)
+        {
+            <div class="product-card">
+                <div class="product-image-container">
+                    <img src="data:image/png;base64,@Convert.ToBase64String(product.Id_ProductDataImage.OriginalImageData)" alt="@product.Name_Product" class="product-image" />
+                </div>
+                <div class="product-info">
+                    <h4>@product.Name_Product</h4>
+                    <p>@product.ProductsDescription</p>
+                    <p>Количество :@product.ProductCount</p>
+
+                    <p class="product-price">Price: @product.ProductPrice</p>
+                    <button  @* @onclick="AddProductOrder()" *@ class="btn btn-primary">Add to Cart</button>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No products found in this category.</p>
+}
+
+<style>
+    .category-title {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 20px;
+    }
+
+    .product-card {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 15px;
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .product-card:hover {
+        transform: scale(1.05);
+    }
+
+    .product-image-container {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .product-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+    .product-info h4 {
+        font-size: 18px;
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    .product-info p {
+        font-size: 14px;
+        color: #555;
+        text-align: center;
+    }
+
+    .product-price {
+        font-weight: bold;
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+</style>
 
 @code {
 
+    [Parameter] public long id { get; set; }
+
+    public Category Category;
+    private string Searh_input;
+    private List<Category> categoryList = new List<Category>();
+    private List<Product> products;
+    private Dictionary<long, Category> Categories = new Dictionary<long, Category>();
+
+    private string Store_Products;
+    private Dictionary<string, string> Urls = new Dictionary<string, string>();
+    public Product[] Products;
+    public string Url_Image;
+    private bool _isInitialized;
+    private string Store_CategoryUrl_Service;
+    private string jwt_token { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Console.WriteLine($"OnInitialized вызван в {DateTime.Now}");
+
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Console.WriteLine($"OnAfterRenderAsync вызван в {DateTime.Now}, firstRender: {firstRender}");
+
+        if (firstRender)
+        {
+            try
+            {
+                Category = await CategoryService.GetCategoryByIdAsync(id);
+
+                Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+
+
+                products = await ProductService.GetProductsAsyncCategoryId(id);
+
+
+                for (int i = 0; i < products.Count; i++)
+                {
+
+                    Category category; // Объявляем переменную category перед использованием
+
+                    if (Categories.TryGetValue(products[i].Category_Id.Id, out category))
+                    {
+
+                        products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
+
+
+                        // // Если категория найдена, обновляем её данные
+                        // Categories[products[i].Category_Id.Id].Image_Category = new Image
+                        //     {
+                        //         Id = products[i].Category_Id.Image_Category.Id,
+                        //         OriginalImageData = imageCategory.CopyImageData
+                        //     };
+
+                    }
+                    else
+                    {
+                        var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Category_Id.Image_Category.Id}");
+                        if (imageCategory != null)
+                        {
+                            products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
+                            Categories.Add(products[i].Category_Id.Id, products[i].Category_Id);
+
+
+                        }
+                    }
+
+                    var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Id_ProductDataImage.Id}");
+                    if (imageProduct != null)
+                    {
+                        products[i].Id_ProductDataImage = new Image { Id = products[i].Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
+
+                    }
+
+                }
+                StateHasChanged();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+    }
+
+
+    public async Task AddProductOrder()
+    {
+
+        // Status
+        // Order order = new Order() { OrdersName = Category .Name_Category, };
+        // await OrderService.CreateOrderAsync();
+    }
 }

@@ -14,6 +14,8 @@ namespace ShopClassLibrary.ModelShop
         public string ProductsDescription { get; set; }
 
         public long ProductCount { get; set; }
+        public long ProductPrice { get; set; }
+
         public Image Id_ProductDataImage { get; set; }
 
         public Category Category_Id { get; set; }

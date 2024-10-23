@@ -27,8 +27,12 @@
         <label for="ProductCount">Количество</label>
         <InputNumber id="ProductCount" class="form-control" @bind-Value="product.ProductCount" />
     </div>
+    <div class="form-group">
+        <label for="ProductCount">Цена</label>
+        <InputNumber id="ProductCount" class="form-control" @bind-Value="product.ProductPrice" />
+    </div>
 
-
+    
     <div class="form-group">
         <label for="Category">Категория</label>
         @if (categories.Count > 0)

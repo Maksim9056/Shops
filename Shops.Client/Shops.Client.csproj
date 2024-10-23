@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <Folder Include="Pages\Admin\User\" />
-    <Folder Include="Pages\Orders\" />
     <Folder Include="Pages\Status\" />
     <Folder Include="Pages\Product_category\" />
     <Folder Include="Pages\Projects\" />

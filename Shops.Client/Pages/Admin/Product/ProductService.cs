@@ -16,6 +16,20 @@ namespace Shops.Client.Pages.Admin.Product
             _apiKey = apiKey;
             _url = _apiKey.GetUserStore_Products_ServiceUrl();
         }
+        //CategoryId
+
+        public async Task<List<ShopClassLibrary.ModelShop.Product>> GetProductsAsyncCategoryId(long Id)
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<List<ShopClassLibrary.ModelShop.Product>>(_url + $"/ProductControler/CategoryId{Id}");
+
+            }
+            catch (Exception ex)
+            {
+                return new List<ShopClassLibrary.ModelShop.Product>();
+            }
+        }
 
         public async Task<List<ShopClassLibrary.ModelShop.Product>> GetProductsAsync()
         {

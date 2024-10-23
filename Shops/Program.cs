@@ -4,6 +4,7 @@ using Shops.Client;
 using Shops.Client.Pages;
 using Shops.Client.Pages.Admin.Category;
 using Shops.Client.Pages.Admin.Product;
+using Shops.Client.Pages.Orders;
 using Shops.Client.Service;
 using Shops.Components;
 
@@ -29,7 +30,7 @@ namespace Shops
             builder.Services.AddScoped<CategoryService>();
             builder.Services.AddScoped<ProductService>();
             builder.Services.AddScoped<ImageService>();
-
+            builder.Services.AddScoped<OrderService>();
             builder.Services.AddBlazoredLocalStorage();
 
 

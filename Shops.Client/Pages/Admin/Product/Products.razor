@@ -60,7 +60,7 @@ else
 @code {
     private List<Product> products;
     public string Url_Image;
-
+    private Dictionary<long, Category> Categories = new Dictionary<long, Category>();
     protected override async Task OnInitializedAsync()
     {
         try
@@ -70,7 +70,7 @@ else
         }
         catch(Exception)
         {
-            
+
         }
     }
 
@@ -90,12 +90,33 @@ else
 
                 for (int i = 0; i < products.Count; i++)
                 {
+                   
+                    Category category; // Объявляем переменную category перед использованием
 
-                    var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Category_Id.Image_Category.Id}");
-                    if (imageCategory != null)
+                    if (Categories.TryGetValue(products[i].Category_Id.Id, out category))
                     {
-                        products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
 
+                        products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
+
+                     
+                        // // Если категория найдена, обновляем её данные
+                        // Categories[products[i].Category_Id.Id].Image_Category = new Image
+                        //     {
+                        //         Id = products[i].Category_Id.Image_Category.Id,
+                        //         OriginalImageData = imageCategory.CopyImageData
+                        //     };
+                     
+                    }
+                    else
+                    {
+                        var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Category_Id.Image_Category.Id}");
+                        if (imageCategory != null)
+                        {
+                            products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
+                            Categories.Add(products[i].Category_Id.Id, products[i].Category_Id);
+
+
+                        }
                     }
 
                     var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Id_ProductDataImage.Id}");

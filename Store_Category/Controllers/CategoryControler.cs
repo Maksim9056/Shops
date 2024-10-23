@@ -57,18 +57,18 @@ namespace Store_Category.Controllers
         {
             try
             {
-                //var Category =  _context.Category.Select(c => new
-                //  {
-                //      c.Id,
-                //      c.Name_Category,
-                //      c.Category_Description,
-                //      Image_Category_Id = c.Image_Category.Id // Получаем только Id изображения
+                var categories = await _context.Category
+              .Include(c => c.Image_Category) // Явно загружаем данные об изображении
+              .Select(c => new
+              {
+                  c.Id, // Id категории
+                  c.Name_Category,
+                  c.Category_Description,
+                  c.Image_Category  
+              })
+              .ToListAsync();
+                //var  Category = _context.Category.Include(u => u.Image_Category).ToList();
 
-                //     //c.Image_Category. // Включаем изображение
-
-                //    //Исключаем Image_Category
-                //});
-                var  Category = _context.Category.Include(u => u.Image_Category).ToList();
 
                 /*await _context.Category.ToListAsync();*/
                 if (Category == null)
@@ -77,7 +77,7 @@ namespace Store_Category.Controllers
                 }
                 else
                 {
-                    return Ok(Category);
+                    return Ok(categories);
 
                 }
             }

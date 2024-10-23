@@ -33,6 +33,17 @@ namespace Shops.Client
                 Console.WriteLine(ex.Message);
             }
         }
+        /// <summary>
+        /// Возращает Store_Image адрес
+        /// </summary>
+        /// <returns></returns>
+        public string GetStore_Orders_ServiceUrl()
+        {
+
+
+            //Urls.TryGetValue("Store_Image", out var userServiceUrl);
+            return _IUserService["Urls:Store_Orders"];
+        }
 
         /// <summary>
         /// Возращает Store_Image адрес

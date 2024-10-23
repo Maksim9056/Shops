@@ -19,6 +19,20 @@ namespace Store_Orders
             builder.Services.AddSwaggerGen();
             builder.Services.AddDbContext<ShopData>(options =>
                  options.UseNpgsql(builder.Configuration.GetConnectionString("Shop")));
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
+            builder.WebHost.ConfigureKestrel(serverOptions =>
+            {
+                serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(5); // Тайм-аут удержания соединения
+                serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // Тайм-аут для заголовков
+            });
 
             var app = builder.Build();
 
@@ -28,6 +42,7 @@ namespace Store_Orders
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseCors("AllowAll");
 
             app.UseHttpsRedirection();
 

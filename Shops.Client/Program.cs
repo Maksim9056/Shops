@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Shops.Client.Pages.Admin.Category;
 using Shops.Client;
 using Shops.Client.Pages.Admin.Product;
-using Shops.Client.Service; // Adjust the namespace as per your project
+using Shops.Client.Service;
+using Shops.Client.Pages.Orders; // Adjust the namespace as per your project
 
 namespace Shops.Client
 {
@@ -36,12 +37,14 @@ namespace Shops.Client
             // Строим конфигурацию
             var configuration = new ConfigurationBuilder()
                 .AddJsonStream(stream)
-                .Build();
+                .Build(); 
 
             // Регистрируем конфигурацию
             builder.Services.AddSingleton<IConfiguration>(configuration);
 
             // Регистрируем ваши сервисы
+            builder.Services.AddScoped<OrderService>();
+
             builder.Services.AddScoped<ImageService>();
             builder.Services.AddScoped<ProductService>(); 
             builder.Services.AddScoped<UrlService>(); 

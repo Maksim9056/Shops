@@ -28,8 +28,33 @@ namespace Store_Products.Controllers
         {
             try
             {
-                return await _context.Products.Include(u =>u.Id_ProductDataImage).Include(u => u.Category_Id.Image_Category).ToListAsync();
+              var prodduct =   await _context.Products.Include(u =>u.Id_ProductDataImage).Include(u => u.Category_Id.Image_Category).ToListAsync();
 
+
+                Parallel.ForEach(prodduct, product =>
+                {
+                    //if (product.Id_ProductDataImage != null)
+                    //{
+                        product.Id_ProductDataImage.OriginalImageData = new byte[0];
+                    //}
+
+                    //if (product.Category_Id?.Image_Category != null)
+                    //{
+                        product.Category_Id.Image_Category.OriginalImageData = new byte[0];
+                    //}
+                });
+
+                //for (var i = 0; i < prodduct.Count; i++)
+                //{
+
+
+
+                //    prodduct[i].Id_ProductDataImage.OriginalImageData = new byte[0];
+
+                //     prodduct[i].Category_Id.Image_Category.OriginalImageData = new byte[0];
+                //}
+
+                return prodduct;
             }
             catch (Exception ex)
             {
@@ -37,6 +62,48 @@ namespace Store_Products.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+
+        [HttpGet("CategoryId{id}")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProductsIdCategory(long id)
+        {
+            try
+            {
+                var prodduct = await _context.Products.Include(u => u.Id_ProductDataImage).Include(u => u.Category_Id.Image_Category).Where(u =>u.Category_Id.Id == id).ToListAsync();
+
+
+                Parallel.ForEach(prodduct, product =>
+                {
+                    //if (product.Id_ProductDataImage != null)
+                    //{
+                    product.Id_ProductDataImage.OriginalImageData = new byte[0];
+                    //}
+
+                    //if (product.Category_Id?.Image_Category != null)
+                    //{
+                    product.Category_Id.Image_Category.OriginalImageData = new byte[0];
+                    //}
+                });
+
+                //for (var i = 0; i < prodduct.Count; i++)
+                //{
+
+
+
+                //    prodduct[i].Id_ProductDataImage.OriginalImageData = new byte[0];
+
+                //     prodduct[i].Category_Id.Image_Category.OriginalImageData = new byte[0];
+                //}
+
+                return prodduct;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
 
         // GET: api/Products/5
         [HttpGet("{id}")]
