@@ -4,6 +4,8 @@
 @using Shops.Client.Pages.Admin.Category
 @using Shops.Client.Pages.Admin.Product
 @using Shops.Client.Pages.Orders
+@using System.Text
+@using System.Text.Json
 @rendermode InteractiveServer
 @inject HttpClient client
 @inject NavigationManager NavigationManager
@@ -38,7 +40,7 @@
                     <p>Количество :@product.ProductCount</p>
 
                     <p class="product-price">Price: @product.ProductPrice</p>
-                    <button  @* @onclick="AddProductOrder()" *@ class="btn btn-primary">Add to Cart</button>
+                    <button @onclick="(u => AddProductOrder(product))" class="btn btn-primary">Add to Cart</button>
                 </div>
             </div>
         }
@@ -127,12 +129,13 @@ else
 @code {
 
     [Parameter] public long id { get; set; }
-
+    public User user1 = new User();
     public Category Category;
     private string Searh_input;
     private List<Category> categoryList = new List<Category>();
     private List<Product> products;
     private Dictionary<long, Category> Categories = new Dictionary<long, Category>();
+    private List<Product> product_add = new List<Product>();
 
     private string Store_Products;
     private Dictionary<string, string> Urls = new Dictionary<string, string>();
@@ -141,6 +144,7 @@ else
     private bool _isInitialized;
     private string Store_CategoryUrl_Service;
     private string jwt_token { get; set; }
+    private  string UserServiceUrl;
     protected override async Task OnInitializedAsync()
     {
         try
@@ -165,10 +169,88 @@ else
                 Category = await CategoryService.GetCategoryByIdAsync(id);
 
                 Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+                // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                UserServiceUrl = UrlService.GetUserServiceUrl();
+                // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar?TEST=1");
 
+                // // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                // if (createuser.IsSuccessStatusCode)
+                // {
+                //     var content = await createuser.Content.ReadAsStringAsync();
+                //     Console.WriteLine("Response: " + content);
+                // }
+                // else
+                // {
+                //     Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                // }
 
                 products = await ProductService.GetProductsAsyncCategoryId(id);
+                jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
+                if (!string.IsNullOrEmpty(jwt_token))
+                {
 
+
+                    string[] parts = jwt_token.Split('.');
+                    string header = parts[0];
+                    string payload = parts[1];
+                    string signature = parts[2];
+                    string decodedHeader = DecodeBase64Url(header);
+                    string decodedPayload = DecodeBase64Url(payload);
+                    // Десериализуем полезную нагрузку в объект JSON
+                    var payloadss = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(decodedPayload);
+                    // Извлечение значений как JsonElement, а затем преобразование к нужному типу
+
+                    long exp = payloadss["exp"].GetInt64(); // Извлекаем значение exp как long
+
+                    DateTime expirationDate = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
+
+                    if (DateTime.UtcNow > expirationDate)
+                    {
+                        Console.WriteLine("JWT токен истек");
+                    }
+                    else
+                    {
+                        string nameid = payloadss["nameid"].GetString(); // Получаем строковое значение
+                        string email = payloadss["email"].GetString(); // Получаем строковое значение
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                        var createuser = await client.GetAsync(UserServiceUrl + $"/UserConroller/product-order{nameid},{email}");
+                        // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                        if (createuser.IsSuccessStatusCode)
+                        {
+                            var content = await createuser.Content.ReadFromJsonAsync<User>();
+
+                            // if (!string.IsNullOrEmpty(content))
+                            // {
+                            //     // Десериализация строки в объект User
+                            //     var user = JsonSerializer.Deserialize<User>(content);
+                            //     Console.WriteLine("Response: " + content);
+                            //     if (user != null)
+                            //     {
+                            //         Console.WriteLine("Response user : " + user);
+                            //         user1 = user;
+                            //     }
+
+                            // }
+                            if (content != null)
+                            {
+                                user1 = content;
+
+
+                            }
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                        }
+                        Console.WriteLine("JWT Token: " + jwt_token);
+                        Console.WriteLine("JWT токен действителен");
+                        client.DefaultRequestHeaders.Authorization = null;
+
+                    }
+                    // Извлекаем значения nameid и email
+
+                }
 
                 for (int i = 0; i < products.Count; i++)
                 {
@@ -221,11 +303,52 @@ else
     }
 
 
-    public async Task AddProductOrder()
+    public async Task AddProductOrder(Product product)
     {
+        try
+        {
+            var productscd = product;
 
-        // Status
-        // Order order = new Order() { OrdersName = Category .Name_Category, };
-        // await OrderService.CreateOrderAsync();
+           
+            if (user1.Email != null)
+            {
+              
+                // product.Id_ProductDataImage.OriginalImageData = new byte[1];
+                Category.Image_Category = new Image() { Id = 0, Description = "",  ImageCopies = new List<ImageCopy>(), OriginalImageData = new byte[1], UploadDate = DateTime.UtcNow };
+                product.Category_Id = Category;
+                user1.Id_User_Image = new Image() { Id = 0, Description = "", ImageCopies = new List<ImageCopy>(),OriginalImageData=new byte[1],UploadDate= DateTime.UtcNow};
+
+                user1.Status = new Status() { Id = 0, Description = "", StatusName=""};
+
+
+                product.Id_ProductDataImage.Description = "";
+                product.Id_ProductDataImage.ImageCopies = new List<ImageCopy>();
+                product_add.Add(product);
+                Status status = new Status() { Id = 8, Description = "", StatusName = "" };
+                Order order = new Order() {Id=0 ,OrdersName = Category.Name_Category, Status = status, Idproduct = product_add, User = user1 };
+                await OrderService.CreateOrderAsync(order);
+            }
+
+            product = productscd;
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
+
+    string DecodeBase64Url(string base64Url)
+    {
+        string base64 = base64Url.Replace('-', '+').Replace('_', '/');
+        switch (base64.Length % 4)
+        {
+            case 2: base64 += "=="; break;
+            case 3: base64 += "="; break;
+        }
+        byte[] bytes = Convert.FromBase64String(base64);
+        return Encoding.UTF8.GetString(bytes);
+    }
+
+  
+
 }

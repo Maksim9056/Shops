@@ -160,19 +160,19 @@
                     // Данные уже существуют - используем их
                     Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
                 }
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
-                var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar?TEST=1");
+                // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar?TEST=1");
 
-                // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
-                if (createuser.IsSuccessStatusCode)
-                {
-                    var content = await createuser.Content.ReadAsStringAsync();
-                    Console.WriteLine("Response: " + content);
-                }
-                else
-                {
-                    Console.WriteLine("Authorization failed: " + createuser.StatusCode);
-                }
+                // // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                // if (createuser.IsSuccessStatusCode)
+                // {
+                //     var content = await createuser.Content.ReadAsStringAsync();
+                //     Console.WriteLine("Response: " + content);
+                // }
+                // else
+                // {
+                //     Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                // }
                 // var user = await createuser.RequestMessage.Content.ReadAsStringAsync();
                 // Console.WriteLine(user);
                 // Теперь можно безопасно вызывать JS interop

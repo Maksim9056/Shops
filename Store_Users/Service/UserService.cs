@@ -65,11 +65,14 @@ namespace Store_Users.Service
              
                 // Хэшируем пароль пользователя
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
+                var productImage = await _dbContext.Image.Include(u => u.ImageCopies).FirstOrDefaultAsync(U => U.Id == user.Id_User_Image.Id);
 
                 // Проверяем, существует ли статус в базе данных
                 var existingStatus = await _dbContext.Status.FindAsync(user.Status.Id);
                 if (existingStatus != null)
                 {
+                    _dbContext.Entry(productImage).State = EntityState.Unchanged;
+                    user.Id_User_Image = productImage;
                     // Если статус существует, присоединяем его к контексту
                     _dbContext.Entry(existingStatus).State = EntityState.Unchanged;
                     user.Status = existingStatus; // Указываем, что это существующий статус
@@ -86,7 +89,24 @@ namespace Store_Users.Service
             return user;
         }
 
-        private string GenerateJwtToken(User user)
+        public async Task<User> User_Product(long Id, string email)
+        {
+            User user = new User();
+            try
+            {
+                user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == Id && u.Email == email);
+
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                return user;
+            }
+        }
+
+
+    private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_secret);

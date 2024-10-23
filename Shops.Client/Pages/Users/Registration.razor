@@ -1,14 +1,15 @@
 ﻿@page "/registration"
 @using ShopClassLibrary.ModelShop
+@using Shops.Client.Service
 @* @rendermode InteractiveWebAssembly
  *@
-@rendermode InteractiveAuto
+@rendermode InteractiveServer
 
 @inject HttpClient client
 @inject NavigationManager NavigationManager
 @* <PageTitle>Home</PageTitle>
  *@
-
+@inject ImageService ImageService
 @inject IJSRuntime JSRuntime
 @inject IConfiguration Configuration
 @inject UrlService UrlService
@@ -129,7 +130,8 @@
             // User.User_Image = bytes;
             User.IsBlocked = false;
             User.CreatedDate = DateTime.UtcNow;
-
+            User.Id_User_Image.OriginalImageData = new byte[1];
+            User.Id_User_Image.ImageCopies = new List<ImageCopy>();
             var status = await client.GetFromJsonAsync<Status>(StatusService + "/StatusConroller/usercreate");
 
             // Status status = new Status() { Id =0,StatusName="",Description=""};
@@ -162,7 +164,9 @@
     {
         try
         {
-            // isLoading = true;
+
+            var result = await ImageService.UploadImageAsync(e.File, "Описание изображения");
+            User.Id_User_Image = result;            // isLoading = true;
             // loadedFiles.Clear();
 
             // foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
@@ -170,17 +174,17 @@
                 
                     // loadedFiles.Add(file);
 
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    //Открыть один раз  дать значение
-                    var mss = e.File.OpenReadStream();
-                // Копируем данные в память асинхронно
-                await mss.CopyToAsync(ms);
-                bytes = ms.ToArray();
+                // using (MemoryStream ms = new MemoryStream())
+                // {
+                //     //Открыть один раз  дать значение
+                //     var mss = e.File.OpenReadStream();
+                // // Копируем данные в память асинхронно
+                // await mss.CopyToAsync(ms);
+                // bytes = ms.ToArray();
 
-                // Выводим размер данных в консоль для проверки
-                Console.WriteLine($"Размер массива байт: {bytes.Length} байт");
-                }
+                // // Выводим размер данных в консоль для проверки
+                // Console.WriteLine($"Размер массива байт: {bytes.Length} байт");
+                // }
 
             // Проверка, если массив пустой
             if (bytes == null || bytes.Length == 0)

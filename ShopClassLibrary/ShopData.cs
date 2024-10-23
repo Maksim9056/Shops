@@ -11,7 +11,7 @@ namespace ShopClassLibrary
 {
     public class ShopData : DbContext
     {
-        public ShopData(DbContextOptions<ShopData> options) : base(options) 
+        public ShopData(DbContextOptions<ShopData> options) : base(options)
         {
 
             //Database.EnsureCreated();
@@ -46,7 +46,17 @@ namespace ShopClassLibrary
                     new Status { Id = 4, StatusName = "Заблокирован", Description = "Пользователь заблокирован из-за нарушения политики" },
                     new Status { Id = 5, StatusName = "Удален", Description = "Пользователь удалил свою учетную запись" },
                    new Status { Id = 6, StatusName = "Новый товар", Description = "Товар в наличии" },
-                   new Status { Id = 7, StatusName = "Удален товар", Description = "Товар не вналичии" }
+                   new Status { Id = 7, StatusName = "Удален товар", Description = "Товар не вналичии" },
+                   new Status { Id = 8, StatusName = "Новый заказ", Description = "Надо соберать" },
+                   new Status { Id = 9, StatusName = "Заказ изменен", Description = "Изменение при  сборки проверять" },
+                  new Status { Id = 10, StatusName = "Заказ отменен", Description = "Заказ удален его делать не надо!" },
+                   new Status { Id = 11, StatusName = "Заказ переделывают", Description = "Заказ заново соберают" },
+                    new Status { Id = 12, StatusName = "Заказ готов", Description = "Заказ готов можете его забрать!" },
+
+                    new Status { Id = 13, StatusName = "Заказ оплачен", Description = "Заказ оплачен!" },
+                     new Status { Id = 14, StatusName = "Заказ сделан", Description = "Заказ сделан!" }
+
+
 
                 );
                 // Настройка связи один-ко-многим между Image и ImageCopy
@@ -57,7 +67,7 @@ namespace ShopClassLibrary
 
                 base.OnModelCreating(modelBuilder);
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }

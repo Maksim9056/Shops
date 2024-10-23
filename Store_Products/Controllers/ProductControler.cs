@@ -69,7 +69,7 @@ namespace Store_Products.Controllers
         {
             try
             {
-                var prodduct = await _context.Products.Include(u => u.Id_ProductDataImage).Include(u => u.Category_Id.Image_Category).Where(u =>u.Category_Id.Id == id).ToListAsync();
+                var prodduct = await _context.Products.Include(u => u.Id_ProductDataImage).Include(u => u.Category_Id.Image_Category).Include(u=>u.Status).Where(u =>u.Category_Id.Id == id).ToListAsync();
 
 
                 Parallel.ForEach(prodduct, product =>

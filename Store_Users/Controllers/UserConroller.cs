@@ -31,6 +31,22 @@ namespace Store_Users.Controllers
             _IUserService = iUserService;
         }
 
+        [Authorize]
+        [HttpGet("product-order{Id},{email}")]
+        public async Task<ActionResult> User_Product(long Id   ,string email)
+        {
+            try
+            {
+                var users = await _IUserService.User_Product(Id, email);
+
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message); // Возвращаем ошибку с кодом 500
+
+            }
+        }
 
         [HttpGet("log")]
         public async Task<IActionResult> UserLog( string email, string password)
@@ -50,13 +66,13 @@ namespace Store_Users.Controllers
             }
         }
 
-        [Authorize]
-        [HttpGet("check-similar")]
-        public IActionResult UserCheckSimular(string  TEST)
-        {
+        //[Authorize]
+        //[HttpGet("check-similar")]
+        //public IActionResult UserCheckSimular(string  TEST)
+        //{
 
-            return Ok( TEST+"Обратный");
-        }
+        //    return Ok( TEST+"Обратный");
+        //}
      
 
         [HttpPost]
@@ -69,7 +85,7 @@ namespace Store_Users.Controllers
 
                 
                 ////_context.Add(User);
-                return Ok(User);
+                return Ok(new User() { Id = users .Id,Email= users.Email});
 
             }
             catch (Exception ex) 

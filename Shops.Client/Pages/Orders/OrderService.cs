@@ -32,7 +32,7 @@ namespace Shops.Client.Pages.Orders
         {
             try
             {
-                return await _httpClient.GetFromJsonAsync<IEnumerable<Order>>(_url + $"OrdersConstroler/user/{userId}");
+                return await _httpClient.GetFromJsonAsync<IEnumerable<Order>>(_url + $"/OrdersConstroler/user/{userId}");
             }
             catch (Exception ex)
             {
@@ -44,7 +44,7 @@ namespace Shops.Client.Pages.Orders
         {
             try
             {
-                return await _httpClient.GetFromJsonAsync<Order>(_url + $"OrdersConstroler/{id}");
+                return await _httpClient.GetFromJsonAsync<Order>(_url + $"/OrdersConstroler/{id}");
             }
             catch (Exception ex)
             {
@@ -56,8 +56,20 @@ namespace Shops.Client.Pages.Orders
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync(_url + "OrdersConstroler", order);
-                response.EnsureSuccessStatusCode();
+                var response = await _httpClient.PostAsJsonAsync(_url + "/OrdersConstroler", order);
+                if (response.IsSuccessStatusCode)
+                {
+                    var createdCategory = await response.Content.ReadFromJsonAsync<ShopClassLibrary.ModelShop.Order>();
+                    Console.WriteLine($"Category created: {createdCategory.Id}");
+                    //return createdCategory;
+                }
+                else
+                {
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error creating category: {errorMessage}");
+                    ////return new ShopClassLibrary.ModelShop.Product();
+
+                }
             }
             catch (Exception ex)
             {
@@ -70,7 +82,7 @@ namespace Shops.Client.Pages.Orders
             try
             {
 
-                var response = await _httpClient.PutAsJsonAsync(_url + $"OrdersConstroler/{order.Id}", order);
+                var response = await _httpClient.PutAsJsonAsync(_url + $"/OrdersConstroler/{order.Id}", order);
                 response.EnsureSuccessStatusCode();
             }
             catch (Exception ex)
@@ -84,7 +96,7 @@ namespace Shops.Client.Pages.Orders
             try
             {
 
-                var response = await _httpClient.DeleteAsync(_url + $"OrdersConstroler/{id}");
+                var response = await _httpClient.DeleteAsync(_url + $"/OrdersConstroler/{id}");
                 response.EnsureSuccessStatusCode();
             }
             catch (Exception ex)

@@ -10,6 +10,8 @@ namespace ShopClassLibrary.ModelShop
     {
         Task<string> AuthenticateUserAsync(string email, string password);
         Task<User> RegisterUserAsync(User user);
+        Task<User> User_Product(long Id , string email);
+
 
     }
 }

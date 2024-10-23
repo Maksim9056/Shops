@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShopClassLibrary;
@@ -11,9 +12,11 @@ using ShopClassLibrary;
 namespace ShopClassLibrary.Migrations
 {
     [DbContext(typeof(ShopData))]
-    partial class ShopDataModelSnapshot : ModelSnapshot
+    [Migration("20241023133119_InitialCreate17")]
+    partial class InitialCreate17
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,8 +119,8 @@ namespace ShopClassLibrary.Migrations
                     b.Property<long>("StatusId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -190,8 +193,8 @@ namespace ShopClassLibrary.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("ProjectManagerId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("ProjectManagerId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("ProjectName")
                         .IsRequired()
@@ -252,8 +255,8 @@ namespace ShopClassLibrary.Migrations
                     b.Property<long>("Id_RightsId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("Id_UserId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("Id_UserId")
+                        .HasColumnType("integer");
 
                     b.Property<long>("StatusId")
                         .HasColumnType("bigint");
@@ -384,8 +387,8 @@ namespace ShopClassLibrary.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("AssignedUserId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("AssignedUserId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp with time zone");
@@ -420,11 +423,11 @@ namespace ShopClassLibrary.Migrations
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.User", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
