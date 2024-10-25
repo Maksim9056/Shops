@@ -1,6 +1,7 @@
 ﻿@page "/category/{id:long}"
 @using ShopClassLibrary.ModelShop
 @using System.Net.Http.Headers
+@using ShopClassLibrary.Service
 @using Shops.Client.Pages.Admin.Category
 @using Shops.Client.Pages.Admin.Product
 @using Shops.Client.Pages.Orders
@@ -17,6 +18,7 @@
 @inject ProductService ProductService
 @inject CategoryService CategoryService
 @inject OrderService OrderService
+@inject JWT_Decode JWT_Decode
 
 @if (Category != null)
 {
@@ -135,7 +137,7 @@ else
     private List<Category> categoryList = new List<Category>();
     private List<Product> products;
     private Dictionary<long, Category> Categories = new Dictionary<long, Category>();
-    private List<Product> product_add = new List<Product>();
+    private ICollection<int> product_add = new List<int>();
 
     private string Store_Products;
     private Dictionary<string, string> Urls = new Dictionary<string, string>();
@@ -188,36 +190,35 @@ else
                 jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
                 if (!string.IsNullOrEmpty(jwt_token))
                 {
+                    var user = JWT_Decode.Check_jwt_token(jwt_token);
 
+                    // string[] parts = jwt_token.Split('.');
+                    // string header = parts[0];
+                    // string payload = parts[1];
+                    // string signature = parts[2];
+                    // string decodedHeader = DecodeBase64Url(header);
+                    // string decodedPayload = DecodeBase64Url(payload);
+                    // // Десериализуем полезную нагрузку в объект JSON
+                    // var payloadss = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(decodedPayload);
+                    // // Извлечение значений как JsonElement, а затем преобразование к нужному типу
 
-                    string[] parts = jwt_token.Split('.');
-                    string header = parts[0];
-                    string payload = parts[1];
-                    string signature = parts[2];
-                    string decodedHeader = DecodeBase64Url(header);
-                    string decodedPayload = DecodeBase64Url(payload);
-                    // Десериализуем полезную нагрузку в объект JSON
-                    var payloadss = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(decodedPayload);
-                    // Извлечение значений как JsonElement, а затем преобразование к нужному типу
+                    // long exp = payloadss["exp"].GetInt64(); // Извлекаем значение exp как long
 
-                    long exp = payloadss["exp"].GetInt64(); // Извлекаем значение exp как long
-
-                    DateTime expirationDate = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
-
-                    if (DateTime.UtcNow > expirationDate)
+                    // DateTime expirationDate = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
+                    if (user.Email == null)
                     {
-                        Console.WriteLine("JWT токен истек");
+                        await localStorage.RemoveItemAsync("jwt_token");
+
                     }
                     else
                     {
-                        string nameid = payloadss["nameid"].GetString(); // Получаем строковое значение
-                        string email = payloadss["email"].GetString(); // Получаем строковое значение
                         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
-                        var createuser = await client.GetAsync(UserServiceUrl + $"/UserConroller/product-order{nameid},{email}");
+                        var createuser = await client.GetAsync(UserServiceUrl + $"/UserConroller/product-order{user.Id},{user.Email}");
                         // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
                         if (createuser.IsSuccessStatusCode)
                         {
                             var content = await createuser.Content.ReadFromJsonAsync<User>();
+                            user1 = content;
 
                             // if (!string.IsNullOrEmpty(content))
                             // {
@@ -231,26 +232,82 @@ else
                             //     }
 
                             // }
-                            if (content != null)
-                            {
-                                user1 = content;
 
-
-                            }
 
                         }
                         else
                         {
                             Console.WriteLine("Authorization failed: " + createuser.StatusCode);
                         }
+
                         Console.WriteLine("JWT Token: " + jwt_token);
                         Console.WriteLine("JWT токен действителен");
                         client.DefaultRequestHeaders.Authorization = null;
-
                     }
-                    // Извлекаем значения nameid и email
-
                 }
+                //     string[] parts = jwt_token.Split('.');
+                //     string header = parts[0];
+                //     string payload = parts[1];
+                //     string signature = parts[2];
+                //     string decodedHeader = DecodeBase64Url(header);
+                //     string decodedPayload = DecodeBase64Url(payload);
+                //     // Десериализуем полезную нагрузку в объект JSON
+                //     var payloadss = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(decodedPayload);
+                //     // Извлечение значений как JsonElement, а затем преобразование к нужному типу
+
+                //     long exp = payloadss["exp"].GetInt64(); // Извлекаем значение exp как long
+
+                //     DateTime expirationDate = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
+
+                //     if (DateTime.UtcNow > expirationDate)
+                //     {
+                //         Console.WriteLine("JWT токен истек");
+                //         await localStorage.RemoveItemAsync("jwt_token");
+
+                //     }
+                //     else
+                //     {
+                //         string nameid = payloadss["nameid"].GetString(); // Получаем строковое значение
+                //         string email = payloadss["email"].GetString(); // Получаем строковое значение
+                //         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                //         var createuser = await client.GetAsync(UserServiceUrl + $"/UserConroller/product-order{nameid},{email}");
+                //         // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                //         if (createuser.IsSuccessStatusCode)
+                //         {
+                //             var content = await createuser.Content.ReadFromJsonAsync<User>();
+
+                //             // if (!string.IsNullOrEmpty(content))
+                //             // {
+                //             //     // Десериализация строки в объект User
+                //             //     var user = JsonSerializer.Deserialize<User>(content);
+                //             //     Console.WriteLine("Response: " + content);
+                //             //     if (user != null)
+                //             //     {
+                //             //         Console.WriteLine("Response user : " + user);
+                //             //         user1 = user;
+                //             //     }
+
+                //             // }
+                //             if (content != null)
+                //             {
+                //                 user1 = content;
+
+
+                //             }
+
+                //         }
+                //         else
+                //         {
+                //             Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                //         }
+                //         Console.WriteLine("JWT Token: " + jwt_token);
+                //         Console.WriteLine("JWT токен действителен");
+                //         client.DefaultRequestHeaders.Authorization = null;
+
+                //     }
+                //     // Извлекаем значения nameid и email
+
+                // }
 
                 for (int i = 0; i < products.Count; i++)
                 {
@@ -307,29 +364,25 @@ else
     {
         try
         {
-            var productscd = product;
 
-           
+
             if (user1.Email != null)
             {
-              
+
                 // product.Id_ProductDataImage.OriginalImageData = new byte[1];
                 Category.Image_Category = new Image() { Id = 0, Description = "",  ImageCopies = new List<ImageCopy>(), OriginalImageData = new byte[1], UploadDate = DateTime.UtcNow };
-                product.Category_Id = Category;
                 user1.Id_User_Image = new Image() { Id = 0, Description = "", ImageCopies = new List<ImageCopy>(),OriginalImageData=new byte[1],UploadDate= DateTime.UtcNow};
 
                 user1.Status = new Status() { Id = 0, Description = "", StatusName=""};
 
-
-                product.Id_ProductDataImage.Description = "";
-                product.Id_ProductDataImage.ImageCopies = new List<ImageCopy>();
-                product_add.Add(product);
+                product_add.Add(Convert.ToInt32(product.Id));
                 Status status = new Status() { Id = 8, Description = "", StatusName = "" };
                 Order order = new Order() {Id=0 ,OrdersName = Category.Name_Category, Status = status, Idproduct = product_add, User = user1 };
                 await OrderService.CreateOrderAsync(order);
+
+                product_add.Remove(Convert.ToInt32(product.Id));
             }
 
-            product = productscd;
         }
         catch(Exception ex)
         {

@@ -1,0 +1,210 @@
+﻿@page "/user/cart"
+@using ShopClassLibrary.ModelShop
+@using System.Net.Http.Headers
+@using ShopClassLibrary.Service
+@using Shops.Client.Pages.Admin.Category
+@using Shops.Client.Pages.Admin.Product
+@using Shops.Client.Pages.Orders
+@using System.Text
+@using System.Text.Json
+@rendermode InteractiveServer
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@inject UrlService UrlService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
+@inject ProductService ProductService
+@inject CategoryService CategoryService
+@inject OrderService OrderService
+@inject  JWT_Decode JWT_Decode
+<h3>Cart</h3>
+
+@if (cartItems?.Count > 0)
+{
+    <ul>
+        @foreach (var item in cartItems)
+        {
+            <li>
+                <strong>@item.Name_Product</strong> - @item.ProductsDescription <br />
+                Price: @item.ProductPrice <br />
+                Quantity: @item.ProductCount
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Your cart is empty.</p>
+}
+
+@code {
+    private List<Product> cartItems;
+    private string Store_Products;
+    private Dictionary<string, string> Urls = new Dictionary<string, string>();
+    public Product[] Products;
+    public string Url_Image;
+    private bool _isInitialized;
+    private string Store_CategoryUrl_Service;
+    private string jwt_token { get; set; }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     cartItems = await orderService.GetCartItemsForUser();
+    // }
+    private string UserServiceUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Console.WriteLine($"OnInitialized вызван в {DateTime.Now}");
+
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Console.WriteLine($"OnAfterRenderAsync вызван в {DateTime.Now}, firstRender: {firstRender}");
+
+        if (firstRender)
+        {
+            try
+            {
+                // Category = await CategoryService.GetCategoryByIdAsync(id);
+
+                Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+                // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                UserServiceUrl = UrlService.GetUserServiceUrl();
+                // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar?TEST=1");
+
+                // // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                // if (createuser.IsSuccessStatusCode)
+                // {
+                //     var content = await createuser.Content.ReadAsStringAsync();
+                //     Console.WriteLine("Response: " + content);
+                // }
+                // else
+                // {
+                //     Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                // }
+
+                // products = await ProductService.GetProductsAsyncCategoryId(id);
+                jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
+
+                if (!string.IsNullOrEmpty(jwt_token))
+                {
+                    var  user =  JWT_Decode.Check_jwt_token(jwt_token);
+
+                    // string[] parts = jwt_token.Split('.');
+                    // string header = parts[0];
+                    // string payload = parts[1];
+                    // string signature = parts[2];
+                    // string decodedHeader = DecodeBase64Url(header);
+                    // string decodedPayload = DecodeBase64Url(payload);
+                    // // Десериализуем полезную нагрузку в объект JSON
+                    // var payloadss = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(decodedPayload);
+                    // // Извлечение значений как JsonElement, а затем преобразование к нужному типу
+
+                    // long exp = payloadss["exp"].GetInt64(); // Извлекаем значение exp как long
+
+                    // DateTime expirationDate = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
+                    if (user.Email == null)
+                    {
+                        await localStorage.RemoveItemAsync("jwt_token");
+
+                    }
+                    else
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                        var createuser = await client.GetAsync(UserServiceUrl + $"/UserConroller/product-order{user.Id},{user.Email}");
+                        // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                        if (createuser.IsSuccessStatusCode)
+                        {
+                            var content = await createuser.Content.ReadFromJsonAsync<User>();
+
+                            // if (!string.IsNullOrEmpty(content))
+                            // {
+                            //     // Десериализация строки в объект User
+                            //     var user = JsonSerializer.Deserialize<User>(content);
+                            //     Console.WriteLine("Response: " + content);
+                            //     if (user != null)
+                            //     {
+                            //         Console.WriteLine("Response user : " + user);
+                            //         user1 = user;
+                            //     }
+
+                            // }
+                         
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                        }
+
+                        Console.WriteLine("JWT Token: " + jwt_token);
+                        Console.WriteLine("JWT токен действителен");
+                        client.DefaultRequestHeaders.Authorization = null;
+                    }
+
+                  
+                    // Извлекаем значения nameid и email
+
+                }
+
+                // for (int i = 0; i < products.Count; i++)
+                // {
+
+                //     Category category; // Объявляем переменную category перед использованием
+
+                //     if (Categories.TryGetValue(products[i].Category_Id.Id, out category))
+                //     {
+
+                //         products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
+
+
+                //         // // Если категория найдена, обновляем её данные
+                //         // Categories[products[i].Category_Id.Id].Image_Category = new Image
+                //         //     {
+                //         //         Id = products[i].Category_Id.Image_Category.Id,
+                //         //         OriginalImageData = imageCategory.CopyImageData
+                //         //     };
+
+                //     }
+                //     else
+                //     {
+                //         var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Category_Id.Image_Category.Id}");
+                //         if (imageCategory != null)
+                //         {
+                //             products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
+                //             Categories.Add(products[i].Category_Id.Id, products[i].Category_Id);
+
+
+                //         }
+                //     }
+
+                //     var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Id_ProductDataImage.Id}");
+                //     if (imageProduct != null)
+                //     {
+                //         products[i].Id_ProductDataImage = new Image { Id = products[i].Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
+
+                //     }
+
+                // }
+                StateHasChanged();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+    }
+
+
+}

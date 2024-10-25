@@ -97,51 +97,48 @@ namespace Store_Orders.Controllers
         {
             try
             {
-                var user = await _context.Users.Include(u => u.Id_User_Image.ImageCopies).Include(U => U.Status).FirstOrDefaultAsync(U => U.Id == order.User.Id);
 
-                //var productImage = await _context.Image.Include(u => u.ImageCopies).FirstOrDefaultAsync(U => U.Id == product.Id_ProductDataImage.Id);
-           
-                
-                var productStatus = await _context.Status.FirstOrDefaultAsync(U => U.Id == order.Status.Id);
-               List<Product> orders = new List<Product>();
+                var user = await _context.Users
+             .Include(u => u.Id_User_Image)
+                 .ThenInclude(i => i.ImageCopies)
+             .Include(u => u.Status)
+             .FirstOrDefaultAsync(u => u.Id == order.User.Id);
 
-                for (int i = 0; i < order.Idproduct.Count(); i++)
+                var orderqqo =  _context.Orders
+                    .Include(o => o.User)
+                    .Where(o => o.Idproduct == order.Idproduct && o.User == user);
+
+                bool orderExists = await _context.Orders
+                 .AnyAsync(o => o.Idproduct == order.Idproduct && o.User.Id == user.Id);
+                if (orderExists == false)
                 {
-                    var CategoryImage = await _context.Products.Include(u => u.Id_ProductDataImage.ImageCopies).Include(U=>U.Status).Include(u=>u.Category_Id.Image_Category.ImageCopies).FirstOrDefaultAsync(U => U.Id == order.Idproduct.ElementAt(i).Id);
-                    orders.Add(CategoryImage);
-                }
-                if (user != null)
-                {// Если статус существует, присоединяем его к контексту
-
-
-
-                    _context.Entry(user).State = EntityState.Unchanged;
-                    order.User = user;
-                    _context.Entry(productStatus).State = EntityState.Unchanged;
-
-                    order.Status = productStatus;
-                    //_context.Entry(orders).State = EntityState.Unchanged;
-                    order.Idproduct = orders;
-                }
-
-                    //Parallel.ForEach(order., product =>
-                    //{
-                    //    //if (product.Id_ProductDataImage != null)
-                    //    //{
-                    //    product.Id_ProductDataImage.OriginalImageData = new byte[0];
-                    //    //}
-
-                    //    //if (product.Category_Id?.Image_Category != null)
-                    //    //{
-                    //    product.Category_Id.Image_Category.OriginalImageData = new byte[0];
-                    //    //}
-                    //});
+                    var productStatus = await _context.Status.FirstOrDefaultAsync(U => U.Id == order.Status.Id);
+                    //List<Product> orders = new List<Product>();
 
                     //for (int i = 0; i < order.Idproduct.Count(); i++)
                     //{
-                    //    var CategoryImage = await _context.Category.Include(u => u.Image_Category.ImageCopies).FirstOrDefaultAsync(U => U.Id == order.Idproduct[i].Category_Id.Id);
-
+                    //    var CategoryImage = await _context.Products.Include(u => u.Id_ProductDataImage.ImageCopies).Include(U => U.Status).Include(u => u.Category_Id.Image_Category.ImageCopies).FirstOrDefaultAsync(U => U.Id == order.Idproduct.ElementAt(i).Id);
+                    //    orders.Add(CategoryImage);
                     //}
+
+                    if (user != null)
+                    {// Если статус существует, присоединяем его к контексту
+
+
+
+                        _context.Entry(user).State = EntityState.Unchanged;
+                        order.User = user;
+                        _context.Entry(productStatus).State = EntityState.Unchanged;
+
+                        order.Status = productStatus;
+                        //_context.Entry(orders).State = EntityState.Unchanged;
+                        //order.Idproduct = orders;
+                    }
+
+
+
+
+
                     //var productImage = await _context.Image.Include(u => u.ImageCopies).FirstOrDefaultAsync(U => U.Id == product.Id_ProductDataImage.Id);
                     //if (productImage == null)
                     //{
@@ -149,6 +146,7 @@ namespace Store_Orders.Controllers
                     //}
 
                     //var productStatus = await _context.Status.FirstOrDefaultAsync(U => U.Id == product.Status.Id);
+
                     //if (productStatus == null)
                     //{
                     //    return BadRequest("Invalid Status data.");
@@ -170,14 +168,25 @@ namespace Store_Orders.Controllers
                     //}
 
 
-                    //if (order == null)
-                    //{
-                    //    return BadRequest();
-                    //}
+                    if (order == null)
+                    {
+                        return BadRequest();
+                    }
 
                     _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
-                return Ok( new { id = order.Id });
+                    await _context.SaveChangesAsync();
+                    return Ok(new { id = order.Id });
+                    // Логика добавления товара, если он еще не добавлен  
+                 
+
+                }
+                else
+                {
+                    // Товар уже добавлен пользователем
+                    Console.WriteLine("Товар уже добавлен.");
+                    return BadRequest("Товар уже добавлен у этого пользователя." + $"{user.Surname}, {user.UserName} ,{user.Email} ");
+                }
+
 
                 //return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
             }

@@ -1,7 +1,11 @@
 ﻿@page "/log"
 @using ShopClassLibrary.ModelShop
+@using System.Text.Json
+@using System.Net.Http.Headers
+@using System.Text
+@using ShopClassLibrary.Service
 @rendermode InteractiveServer
-
+@inject JWT_Decode JWT_Decode
 @inject HttpClient client
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
@@ -39,36 +43,153 @@
 
             if (firstRender)
             {
-                _isInitialized = true;
                 var Store_CategoryUrl = await localStorage.GetItemAsync<string>("UserServiceUrl");
-                var jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
-               // await  localStorage.RemoveItemAsync("jwt_token");
-                if (jwt_token == null)
+
+                if (/* GetUserStore_Products_ServiceUrl == null ||  */Store_CategoryUrl == null)
+                {
+                    UserService = UrlService.GetUserServiceUrl();
+
+                    await localStorage.SetItemAsync("UserServiceUrl", UserService);
+
+                    // Данные отсутствуют - записываем их в LocalStorage
+                    // await localStorage.SetItemAsync("UserServiceUrl", UserService);
+                    Console.WriteLine("Данные записаны в LocalStorage");
+                }
+                else
                 {
 
+                    UserService = Store_CategoryUrl;
+                    // Данные уже существуют - используем их
+                    Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
+                }
+                _isInitialized = true;
+                var jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
+                // await  localStorage.RemoveItemAsync("jwt_token");
+                if (!string.IsNullOrEmpty(jwt_token))
+                {
+                    var user = JWT_Decode.Check_jwt_token(jwt_token);
 
-                    if (/* GetUserStore_Products_ServiceUrl == null ||  */Store_CategoryUrl == null)
+                    // string[] parts = jwt_token.Split('.');
+                    // string header = parts[0];
+                    // string payload = parts[1];
+                    // string signature = parts[2];
+                    // string decodedHeader = DecodeBase64Url(header);
+                    // string decodedPayload = DecodeBase64Url(payload);
+                    // // Десериализуем полезную нагрузку в объект JSON
+                    // var payloadss = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(decodedPayload);
+                    // // Извлечение значений как JsonElement, а затем преобразование к нужному типу
+
+                    // long exp = payloadss["exp"].GetInt64(); // Извлекаем значение exp как long
+
+                    // DateTime expirationDate = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
+                    if (user.Email == null)
                     {
-                        UserService = UrlService.GetUserServiceUrl();
-
-                        await localStorage.SetItemAsync("UserServiceUrl", UserService);
-
-                        // Данные отсутствуют - записываем их в LocalStorage
-                        // await localStorage.SetItemAsync("UserServiceUrl", UserService);
-                        Console.WriteLine("Данные записаны в LocalStorage");
+                        await localStorage.RemoveItemAsync("jwt_token");
                     }
                     else
                     {
 
-                        UserService = Store_CategoryUrl;
-                        // Данные уже существуют - используем их
-                        Console.WriteLine($"Значение из LocalStorage:{Store_CategoryUrl}");
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                        var createuser = await client.GetAsync(UserService + $"/UserConroller/product-order{user.Id},{user.Email}");
+                        // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                        if (createuser.IsSuccessStatusCode)
+                        {
+                            var content = await createuser.Content.ReadFromJsonAsync<User>();
+
+                            // if (!string.IsNullOrEmpty(content))
+                            // {
+                            //     // Десериализация строки в объект User
+                            //     var user = JsonSerializer.Deserialize<User>(content);
+                            //     Console.WriteLine("Response: " + content);
+                            //     if (user != null)
+                            //     {
+                            //         Console.WriteLine("Response user : " + user);
+                            //         user1 = user;
+                            //     }
+
+                            // }
+
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                        }
+
+                        Console.WriteLine("JWT Token: " + jwt_token);
+                        Console.WriteLine("JWT токен действителен");
+                        client.DefaultRequestHeaders.Authorization = null;
+                        NavigationManager.NavigateTo("/");
+
                     }
+                
+
+                    // string[] parts = jwt_token.Split('.');
+                    // string header = parts[0];
+                    // string payload = parts[1];
+                    // string signature = parts[2];
+                    // string decodedHeader = DecodeBase64Url(header);
+                    // string decodedPayload = DecodeBase64Url(payload);
+                    // // Десериализуем полезную нагрузку в объект JSON
+                    // var payloadss = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(decodedPayload);
+                    // // Извлечение значений как JsonElement, а затем преобразование к нужному типу
+
+                    // long exp = payloadss["exp"].GetInt64(); // Извлекаем значение exp как long
+
+                    // DateTime expirationDate = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
+
+                    // if (DateTime.UtcNow > expirationDate)
+                    // {
+                    //     Console.WriteLine("JWT токен истек");
+                    //     await localStorage.RemoveItemAsync("jwt_token");
+                    // }
+                    // else
+                    // {
+                    //     string nameid = payloadss["nameid"].GetString(); // Получаем строковое значение
+                    //     string email = payloadss["email"].GetString(); // Получаем строковое значение
+                    //     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                    //     var createuser = await client.GetAsync(UserService + $"/UserConroller/product-order{nameid},{email}");
+                    //     // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                    //     if (createuser.IsSuccessStatusCode)
+                    //     {
+                    //         var content = await createuser.Content.ReadFromJsonAsync<User>();
+
+                    //         // if (!string.IsNullOrEmpty(content))
+                    //         // {
+                    //         //     // Десериализация строки в объект User
+                    //         //     var user = JsonSerializer.Deserialize<User>(content);
+                    //         //     Console.WriteLine("Response: " + content);
+                    //         //     if (user != null)
+                    //         //     {
+                    //         //         Console.WriteLine("Response user : " + user);
+                    //         //         user1 = user;
+                    //         //     }
+
+                    //         // }
+                           
+                    //         NavigationManager.NavigateTo("/");
+
+
+                    //     }
+                    //     else
+                    //     {
+                    //         Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                    //     }
+                    //     Console.WriteLine("JWT Token: " + jwt_token);
+                    //     Console.WriteLine("JWT токен действителен");
+                    //     client.DefaultRequestHeaders.Authorization = null;
+
+                    // }
                 }
-                else
-                {
-                    NavigationManager.NavigateTo("/");
-                }
+                // if (jwt_token == null)
+                // {
+
+
+                
+                // }
+                // else
+                // {
+                // }
             }
         }
         catch (Exception)
@@ -104,5 +225,17 @@
             Console.WriteLine(ex.Message);
 
         }
+    }
+
+    string DecodeBase64Url(string base64Url)
+    {
+        string base64 = base64Url.Replace('-', '+').Replace('_', '/');
+        switch (base64.Length % 4)
+        {
+            case 2: base64 += "=="; break;
+            case 3: base64 += "="; break;
+        }
+        byte[] bytes = Convert.FromBase64String(base64);
+        return Encoding.UTF8.GetString(bytes);
     }
 }

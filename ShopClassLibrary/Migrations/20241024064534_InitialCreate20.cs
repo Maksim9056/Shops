@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ShopClassLibrary.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate14 : Migration
+    public partial class InitialCreate20 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -110,7 +110,7 @@ namespace ShopClassLibrary.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserName = table.Column<string>(type: "text", nullable: false),
                     Surname = table.Column<string>(type: "text", nullable: false),
@@ -142,13 +142,51 @@ namespace ShopClassLibrary.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name_Product = table.Column<string>(type: "text", nullable: false),
+                    ProductsDescription = table.Column<string>(type: "text", nullable: false),
+                    ProductCount = table.Column<long>(type: "bigint", nullable: false),
+                    ProductPrice = table.Column<long>(type: "bigint", nullable: false),
+                    Id_ProductDataImageId = table.Column<int>(type: "integer", nullable: false),
+                    Category_IdId = table.Column<long>(type: "bigint", nullable: false),
+                    StatusId = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_Category_Category_IdId",
+                        column: x => x.Category_IdId,
+                        principalTable: "Category",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Products_Image_Id_ProductDataImageId",
+                        column: x => x.Id_ProductDataImageId,
+                        principalTable: "Image",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Products_Status_StatusId",
+                        column: x => x.StatusId,
+                        principalTable: "Status",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Orders",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     OrdersName = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Idproduct = table.Column<int[]>(type: "integer[]", nullable: false),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
                     StatusId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
@@ -179,7 +217,7 @@ namespace ShopClassLibrary.Migrations
                     ProjectDescription = table.Column<string>(type: "text", nullable: false),
                     StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ProjectManagerId = table.Column<int>(type: "integer", nullable: false),
+                    ProjectManagerId = table.Column<long>(type: "bigint", nullable: false),
                     StatusId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
@@ -205,7 +243,7 @@ namespace ShopClassLibrary.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Id_UserId = table.Column<int>(type: "integer", nullable: false),
+                    Id_UserId = table.Column<long>(type: "bigint", nullable: false),
                     Id_RightsId = table.Column<long>(type: "bigint", nullable: false),
                     AssignedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     StatusId = table.Column<long>(type: "bigint", nullable: false)
@@ -234,48 +272,6 @@ namespace ShopClassLibrary.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Products",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name_Product = table.Column<string>(type: "text", nullable: false),
-                    ProductsDescription = table.Column<string>(type: "text", nullable: false),
-                    ProductCount = table.Column<long>(type: "bigint", nullable: false),
-                    Id_ProductDataImageId = table.Column<int>(type: "integer", nullable: false),
-                    Category_IdId = table.Column<long>(type: "bigint", nullable: false),
-                    StatusId = table.Column<long>(type: "bigint", nullable: false),
-                    OrderId = table.Column<long>(type: "bigint", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Products", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Products_Category_Category_IdId",
-                        column: x => x.Category_IdId,
-                        principalTable: "Category",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Products_Image_Id_ProductDataImageId",
-                        column: x => x.Id_ProductDataImageId,
-                        principalTable: "Image",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Products_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Products_Status_StatusId",
-                        column: x => x.StatusId,
-                        principalTable: "Status",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SystemUrls",
                 columns: table => new
                 {
@@ -286,7 +282,7 @@ namespace ShopClassLibrary.Migrations
                     DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     StatusId = table.Column<long>(type: "bigint", nullable: false),
-                    AssignedUserId = table.Column<int>(type: "integer", nullable: false),
+                    AssignedUserId = table.Column<long>(type: "bigint", nullable: false),
                     ProjectId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
@@ -321,7 +317,16 @@ namespace ShopClassLibrary.Migrations
                     { 2L, "Пользователь активен в системе", "Активный" },
                     { 3L, "Пользователь ожидает подтверждения email", "Ожидание подтверждения" },
                     { 4L, "Пользователь заблокирован из-за нарушения политики", "Заблокирован" },
-                    { 5L, "Пользователь удалил свою учетную запись", "Удален" }
+                    { 5L, "Пользователь удалил свою учетную запись", "Удален" },
+                    { 6L, "Товар в наличии", "Новый товар" },
+                    { 7L, "Товар не вналичии", "Удален товар" },
+                    { 8L, "Надо соберать", "Новый заказ" },
+                    { 9L, "Изменение при  сборки проверять", "Заказ изменен" },
+                    { 10L, "Заказ удален его делать не надо!", "Заказ отменен" },
+                    { 11L, "Заказ заново соберают", "Заказ переделывают" },
+                    { 12L, "Заказ готов можете его забрать!", "Заказ готов" },
+                    { 13L, "Заказ оплачен!", "Заказ оплачен" },
+                    { 14L, "Заказ сделан!", "Заказ сделан" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -353,11 +358,6 @@ namespace ShopClassLibrary.Migrations
                 name: "IX_Products_Id_ProductDataImageId",
                 table: "Products",
                 column: "Id_ProductDataImageId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Products_OrderId",
-                table: "Products",
-                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_StatusId",
@@ -427,6 +427,9 @@ namespace ShopClassLibrary.Migrations
                 name: "ImageCopy");
 
             migrationBuilder.DropTable(
+                name: "Orders");
+
+            migrationBuilder.DropTable(
                 name: "Products");
 
             migrationBuilder.DropTable(
@@ -437,9 +440,6 @@ namespace ShopClassLibrary.Migrations
 
             migrationBuilder.DropTable(
                 name: "Category");
-
-            migrationBuilder.DropTable(
-                name: "Orders");
 
             migrationBuilder.DropTable(
                 name: "Rights");

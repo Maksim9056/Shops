@@ -12,8 +12,8 @@ using ShopClassLibrary;
 namespace ShopClassLibrary.Migrations
 {
     [DbContext(typeof(ShopData))]
-    [Migration("20241023133119_InitialCreate17")]
-    partial class InitialCreate17
+    [Migration("20241024064534_InitialCreate20")]
+    partial class InitialCreate20
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -112,6 +112,10 @@ namespace ShopClassLibrary.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<int[]>("Idproduct")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
                     b.Property<string>("OrdersName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -119,8 +123,8 @@ namespace ShopClassLibrary.Migrations
                     b.Property<long>("StatusId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -149,9 +153,6 @@ namespace ShopClassLibrary.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("OrderId")
-                        .HasColumnType("bigint");
-
                     b.Property<long>("ProductCount")
                         .HasColumnType("bigint");
 
@@ -170,8 +171,6 @@ namespace ShopClassLibrary.Migrations
                     b.HasIndex("Category_IdId");
 
                     b.HasIndex("Id_ProductDataImageId");
-
-                    b.HasIndex("OrderId");
 
                     b.HasIndex("StatusId");
 
@@ -193,8 +192,8 @@ namespace ShopClassLibrary.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("ProjectManagerId")
-                        .HasColumnType("integer");
+                    b.Property<long>("ProjectManagerId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("ProjectName")
                         .IsRequired()
@@ -255,8 +254,8 @@ namespace ShopClassLibrary.Migrations
                     b.Property<long>("Id_RightsId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Id_UserId")
-                        .HasColumnType("integer");
+                    b.Property<long>("Id_UserId")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("StatusId")
                         .HasColumnType("bigint");
@@ -387,8 +386,8 @@ namespace ShopClassLibrary.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<int>("AssignedUserId")
-                        .HasColumnType("integer");
+                    b.Property<long>("AssignedUserId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp with time zone");
@@ -423,11 +422,11 @@ namespace ShopClassLibrary.Migrations
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.User", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -531,10 +530,6 @@ namespace ShopClassLibrary.Migrations
                         .HasForeignKey("Id_ProductDataImageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("ShopClassLibrary.ModelShop.Order", null)
-                        .WithMany("Idproduct")
-                        .HasForeignKey("OrderId");
 
                     b.HasOne("ShopClassLibrary.ModelShop.Status", "Status")
                         .WithMany()
@@ -655,11 +650,6 @@ namespace ShopClassLibrary.Migrations
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Image", b =>
                 {
                     b.Navigation("ImageCopies");
-                });
-
-            modelBuilder.Entity("ShopClassLibrary.ModelShop.Order", b =>
-                {
-                    b.Navigation("Idproduct");
                 });
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Project", b =>

@@ -64,8 +64,12 @@ namespace ShopClassLibrary
                     .HasMany(i => i.ImageCopies)
                     .WithOne(ic => ic.Image)
                     .HasForeignKey(ic => ic.ImageID);
-
-                base.OnModelCreating(modelBuilder);
+                // Настройка связи один-ко-многим между Image и ImageCopy
+                //modelBuilder.Entity<>()
+                //    .HasMany(i => i.ImageCopies)
+                //    .WithOne(ic => ic.Image)
+                //    .HasForeignKey(ic => ic.ImageID);
+                //base.OnModelCreating(modelBuilder);
             }
             catch (Exception ex)
             {

@@ -109,6 +109,10 @@ namespace ShopClassLibrary.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<int[]>("Idproduct")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
                     b.Property<string>("OrdersName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -146,9 +150,6 @@ namespace ShopClassLibrary.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long?>("OrderId")
-                        .HasColumnType("bigint");
-
                     b.Property<long>("ProductCount")
                         .HasColumnType("bigint");
 
@@ -167,8 +168,6 @@ namespace ShopClassLibrary.Migrations
                     b.HasIndex("Category_IdId");
 
                     b.HasIndex("Id_ProductDataImageId");
-
-                    b.HasIndex("OrderId");
 
                     b.HasIndex("StatusId");
 
@@ -529,10 +528,6 @@ namespace ShopClassLibrary.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ShopClassLibrary.ModelShop.Order", null)
-                        .WithMany("Idproduct")
-                        .HasForeignKey("OrderId");
-
                     b.HasOne("ShopClassLibrary.ModelShop.Status", "Status")
                         .WithMany()
                         .HasForeignKey("StatusId")
@@ -652,11 +647,6 @@ namespace ShopClassLibrary.Migrations
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Image", b =>
                 {
                     b.Navigation("ImageCopies");
-                });
-
-            modelBuilder.Entity("ShopClassLibrary.ModelShop.Order", b =>
-                {
-                    b.Navigation("Idproduct");
                 });
 
             modelBuilder.Entity("ShopClassLibrary.ModelShop.Project", b =>

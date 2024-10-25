@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using Microsoft.Extensions.Configuration;
+using ShopClassLibrary.Service;
 using Shops.Client;
 using Shops.Client.Pages;
 using Shops.Client.Pages.Admin.Category;
@@ -31,6 +32,7 @@ namespace Shops
             builder.Services.AddScoped<ProductService>();
             builder.Services.AddScoped<ImageService>();
             builder.Services.AddScoped<OrderService>();
+            builder.Services.AddScoped<JWT_Decode>();
             builder.Services.AddBlazoredLocalStorage();
 
 

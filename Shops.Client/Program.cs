@@ -4,7 +4,8 @@ using Shops.Client.Pages.Admin.Category;
 using Shops.Client;
 using Shops.Client.Pages.Admin.Product;
 using Shops.Client.Service;
-using Shops.Client.Pages.Orders; // Adjust the namespace as per your project
+using Shops.Client.Pages.Orders;
+using ShopClassLibrary.Service; // Adjust the namespace as per your project
 
 namespace Shops.Client
 {
@@ -44,6 +45,7 @@ namespace Shops.Client
 
             // Регистрируем ваши сервисы
             builder.Services.AddScoped<OrderService>();
+            builder.Services.AddScoped<JWT_Decode>();
 
             builder.Services.AddScoped<ImageService>();
             builder.Services.AddScoped<ProductService>(); 
