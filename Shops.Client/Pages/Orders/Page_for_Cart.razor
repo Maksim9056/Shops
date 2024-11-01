@@ -21,18 +21,39 @@
 @inject  JWT_Decode JWT_Decode
 <h3>Cart</h3>
 
-@if (cartItems?.Count > 0)
+@if (cartItems.Count > 0)
 {
-    <ul>
-        @foreach (var item in cartItems)
+
+
+
+            <ul>
+        @for (int i  =0;i< orders.Count(); i++)
         {
             <li>
-                <strong>@item.Name_Product</strong> - @item.ProductsDescription <br />
-                Price: @item.ProductPrice <br />
-                Quantity: @item.ProductCount
+
+
+                <p>@orders.ElementAt(i).OrdersName</p>
+
+              <strong>@cartItems[i].Name_Product</strong> - @cartItems[i].ProductsDescription <br />
+                <div >
+                    <img src="data:image/png;base64,@Convert.ToBase64String(cartItems[i].Id_ProductDataImage.OriginalImageData)" alt="@cartItems[i].Name_Product"  />
+                </div>
+
+                Price: @cartItems[i].ProductPrice <br />
+               Quantity: @cartItems[i].ProductCount
+
+
+                <p>@orders.ElementAt(i).Status.StatusName</p>
             </li>
+            
         }
     </ul>
+        
+      @*   @foreach (var item in cartItems)
+        {
+           
+        } *@
+  
 }
 else
 {
@@ -40,7 +61,7 @@ else
 }
 
 @code {
-    private List<Product> cartItems;
+    private List<Product> cartItems = new List<Product>();
     private string Store_Products;
     private Dictionary<string, string> Urls = new Dictionary<string, string>();
     public Product[] Products;
@@ -48,6 +69,11 @@ else
     private bool _isInitialized;
     private string Store_CategoryUrl_Service;
     private string jwt_token { get; set; }
+    public User user1;
+    private Dictionary<long, Category> Categories = new Dictionary<long, Category>();
+    public Category Category;
+
+    public IEnumerable<Order> orders = new List<Order>();
     // protected override async Task OnInitializedAsync()
     // {
     //     cartItems = await orderService.GetCartItemsForUser();
@@ -125,7 +151,7 @@ else
                         if (createuser.IsSuccessStatusCode)
                         {
                             var content = await createuser.Content.ReadFromJsonAsync<User>();
-
+                            user1 = content;
                             // if (!string.IsNullOrEmpty(content))
                             // {
                             //     // Десериализация строки в объект User
@@ -138,7 +164,7 @@ else
                             //     }
 
                             // }
-                         
+
 
                         }
                         else
@@ -151,50 +177,58 @@ else
                         client.DefaultRequestHeaders.Authorization = null;
                     }
 
-                  
+
                     // Извлекаем значения nameid и email
 
                 }
 
-                // for (int i = 0; i < products.Count; i++)
-                // {
 
-                //     Category category; // Объявляем переменную category перед использованием
+                orders = await OrderService.GetOrdersByUserIdAsync(user1.Id);
+                // user /{ userId}
 
-                //     if (Categories.TryGetValue(products[i].Category_Id.Id, out category))
-                //     {
+                // // cartItems.Add(product);
 
-                //         products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
+                for (int i = 0; i < orders.Count(); i++)
+                {
+                    var product = await ProductService.GetProductByIdAsync(orders.ElementAt(i).Idproduct);
+                    // Category category; // Объявляем переменную category перед использованием
+                    Category category; // Объявляем переменную category перед использованием
 
+                    if (Categories.TryGetValue(orders.ElementAt(i).Idproduct, out category))
+                    {
 
-                //         // // Если категория найдена, обновляем её данные
-                //         // Categories[products[i].Category_Id.Id].Image_Category = new Image
-                //         //     {
-                //         //         Id = products[i].Category_Id.Image_Category.Id,
-                //         //         OriginalImageData = imageCategory.CopyImageData
-                //         //     };
-
-                //     }
-                //     else
-                //     {
-                //         var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Category_Id.Image_Category.Id}");
-                //         if (imageCategory != null)
-                //         {
-                //             products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
-                //             Categories.Add(products[i].Category_Id.Id, products[i].Category_Id);
+                        product.Category_Id.Image_Category = new Image { Id = product.Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
 
 
-                //         }
-                //     }
+                        // // Если категория найдена, обновляем её данные
+                        // Categories[products[i].Category_Id.Id].Image_Category = new Image
+                        //     {
+                        //         Id = products[i].Category_Id.Image_Category.Id,
+                        //         OriginalImageData = imageCategory.CopyImageData
+                        //     };
 
-                //     var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Id_ProductDataImage.Id}");
-                //     if (imageProduct != null)
-                //     {
-                //         products[i].Id_ProductDataImage = new Image { Id = products[i].Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
+                    }
+                    else
+                    {
+                        var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{product.Category_Id.Image_Category.Id}");
+                        if (imageCategory != null)
+                        {
+                            product.Category_Id.Image_Category = new Image { Id = product.Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
+                            Categories.Add(product.Category_Id.Id, product.Category_Id);
 
-                //     }
 
-                // }
+                        }
+                    }
+
+                    var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{product.Id_ProductDataImage.Id}");
+                    if (imageProduct != null)
+                    {
+                        product.Id_ProductDataImage = new Image { Id = product.Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
+
+                    }
+                    cartItems.Add(product);
+                }
+
                 StateHasChanged();
 
             }

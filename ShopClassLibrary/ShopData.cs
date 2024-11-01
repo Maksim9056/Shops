@@ -36,7 +36,8 @@ namespace ShopClassLibrary
             try
             {
 
-
+                // Добавляем начальные данные для Image в модель
+                //modelBuilder.Entity<Image>().HasData(initialImages);
 
                 // Инициализация данных для статусов пользователей
                 modelBuilder.Entity<Status>().HasData(
@@ -59,6 +60,17 @@ namespace ShopClassLibrary
 
 
                 );
+
+               // modelBuilder.Entity<Category>().HasData(
+               //    new Category { Id = 1, Name_Category = "Электроника", Category_Description = "Высококлассные гаджеты и устройства, включая смартфоны, ноутбуки и аксессуары, разработанные для современных любителей технологий.", Image_Category = },
+               //    new Category { Id = 2, Name_Category = "Бытовая техника", Category_Description = "Широкий ассортимент кухонной и бытовой техники, такой как холодильники, микроволновые печи и пылесосы, облегчающие повседневные задачи.", Image_Category = },
+               //    new Category { Id = 3, Name_Category = "Мода", Category_Description = "Модная одежда, обувь и аксессуары для мужчин, женщин и детей, которые подчеркнут ваш стиль и индивидуальность.", Image_Category = },
+               //    new Category { Id = 4, Name_Category = "Спорт и фитнес", Category_Description = "Пользователь заблокирован из-за нарушения политики", Image_Category =}
+               //);
+
+
+
+
                 // Настройка связи один-ко-многим между Image и ImageCopy
                 modelBuilder.Entity<Image>()
                     .HasMany(i => i.ImageCopies)

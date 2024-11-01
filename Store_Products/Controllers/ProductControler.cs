@@ -109,8 +109,14 @@ namespace Store_Products.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(long id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products.Include(u => u.Id_ProductDataImage).Include(u => u.Category_Id.Image_Category).Include(u => u.Status).FirstOrDefaultAsync(u =>u.Id ==id);
+        
+            product.Id_ProductDataImage.OriginalImageData = new byte[0];
+            //}
 
+            //if (product.Category_Id?.Image_Category != null)
+            //{
+            product.Category_Id.Image_Category.OriginalImageData = new byte[0];
             if (product == null)
             {
                 return NotFound();

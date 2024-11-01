@@ -109,9 +109,8 @@ namespace ShopClassLibrary.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<int[]>("Idproduct")
-                        .IsRequired()
-                        .HasColumnType("integer[]");
+                    b.Property<int>("Idproduct")
+                        .HasColumnType("integer");
 
                     b.Property<string>("OrdersName")
                         .IsRequired()

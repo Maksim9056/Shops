@@ -12,8 +12,8 @@ using ShopClassLibrary;
 namespace ShopClassLibrary.Migrations
 {
     [DbContext(typeof(ShopData))]
-    [Migration("20241024064534_InitialCreate20")]
-    partial class InitialCreate20
+    [Migration("20241027133008_InitialCreate21")]
+    partial class InitialCreate21
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -112,9 +112,8 @@ namespace ShopClassLibrary.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<int[]>("Idproduct")
-                        .IsRequired()
-                        .HasColumnType("integer[]");
+                    b.Property<int>("Idproduct")
+                        .HasColumnType("integer");
 
                     b.Property<string>("OrdersName")
                         .IsRequired()

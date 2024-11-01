@@ -13,7 +13,7 @@ namespace ShopClassLibrary.ModelShop
         //public List<int> Idproduct { get; set; } = new List<int>();
 
         //public IEnumerable<Product> Idproduct { get; set; } = new List<Product>();
-        public virtual ICollection<int> Idproduct { get; set; }
+        public  long Idproduct { get; set; }
 
         public User User { get; set; }
         public Status Status { get; set; } // Статус связи пользователя и прав (например, "Активна", "Отменена")

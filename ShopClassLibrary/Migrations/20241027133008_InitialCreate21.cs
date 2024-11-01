@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ShopClassLibrary.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate20 : Migration
+    public partial class InitialCreate21 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -185,7 +185,7 @@ namespace ShopClassLibrary.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     OrdersName = table.Column<string>(type: "text", nullable: false),
-                    Idproduct = table.Column<int[]>(type: "integer[]", nullable: false),
+                    Idproduct = table.Column<int>(type: "integer", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     StatusId = table.Column<long>(type: "bigint", nullable: false)
                 },

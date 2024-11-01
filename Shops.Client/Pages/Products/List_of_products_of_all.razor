@@ -375,12 +375,12 @@ else
 
                 user1.Status = new Status() { Id = 0, Description = "", StatusName=""};
 
-                product_add.Add(Convert.ToInt32(product.Id));
+                // product_add.Add(Convert.ToInt32(product.Id));
                 Status status = new Status() { Id = 8, Description = "", StatusName = "" };
-                Order order = new Order() {Id=0 ,OrdersName = Category.Name_Category, Status = status, Idproduct = product_add, User = user1 };
+                Order order = new Order() { Id = 0, OrdersName = Category.Name_Category, Status = status, Idproduct = product.Id, User = user1 };
                 await OrderService.CreateOrderAsync(order);
 
-                product_add.Remove(Convert.ToInt32(product.Id));
+                // product_add.Remove(Convert.ToInt32(product.Id));
             }
 
         }

@@ -42,19 +42,17 @@ namespace Store_Orders.Controllers
         {
             try
             {
-
-                var orders = await _context.Orders
-                    .Where(o => o.User.Id == userId)
-                    .Include(o => o.Idproduct)
-                    .Include(o => o.User)
-                    .ToListAsync();
+                var user =  await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                var orders =  _context.Orders
+                    .Include(o => o.User).Include(o => o.Status)
+                    .Where(o => o.User == user);
 
                 if (orders == null || !orders.Any())
                 {
                     return NotFound($"Заказы для пользователя с ID {userId} не найдены.");
                 }
-
-                return Ok(orders);
+                var a = orders.ToList();
+                return Ok(a);
             }
             catch (Exception ex)
             {
