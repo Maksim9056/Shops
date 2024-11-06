@@ -1,0 +1,298 @@
+﻿@page "/search"
+@using Microsoft.AspNetCore.WebUtilities
+@using ShopClassLibrary.Service
+@using Shops.Client.Pages.Admin.Category
+@using Shops.Client.Pages.Admin.Product
+@using System.Net.Http.Headers
+@using Shops.Client.Pages.Orders
+@inject NavigationManager NavigationManager
+@inject ProductService ProductService
+@inject CategoryService CategoryService
+@inject JWT_Decode JWT_Decode
+@inject UrlService UrlService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@rendermode InteractiveServer
+@inject HttpClient client
+@inject OrderService OrderService
+
+<h3>Search Results for "@searchQuery"</h3>
+@if (products != null && products.Count > 0)
+{
+    <div class="product-grid">
+        @foreach (var product in products)
+        {
+            <div class="product-card">
+                <div class="product-image-container">
+                    <img src="data:image/png;base64,@Convert.ToBase64String(product.Id_ProductDataImage.OriginalImageData)" alt="@product.Name_Product" class="product-image" />
+                </div>
+                <div class="product-info">
+                    <h4>@product.Name_Product</h4>
+                    <p>@product.ProductsDescription</p>
+                    <p>Количество :@product.ProductCount</p>
+
+                    <p class="product-price">Price: @product.ProductPrice</p>
+                    <button @onclick="(u => AddProductOrder(product))" class="btn btn-primary">Add to Cart</button>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No products found for "@searchQuery".</p>
+}
+
+<style>
+    .category-title {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 20px;
+    }
+
+    .product-card {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 15px;
+        transition: transform 0.3s ease-in-out;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+        .product-card:hover {
+            transform: scale(1.05);
+        }
+
+    .product-image-container {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .product-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+    .product-info h4 {
+        font-size: 18px;
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    .product-info p {
+        font-size: 14px;
+        color: #555;
+        text-align: center;
+    }
+
+    .product-price {
+        font-weight: bold;
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+</style>
+
+
+@code {
+    private List<Product> products = new List<Product>();
+    private string searchQuery;
+    private string UserServiceUrl;
+    private string jwt_token { get; set; }
+    public User user1 = new User();
+    public Category Category;
+    private Dictionary<long, Category> Categories = new Dictionary<long, Category>();
+    public string Url_Image;
+
+    protected override async Task OnInitializedAsync()
+    {
+    
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Console.WriteLine($"OnAfterRenderAsync вызван в {DateTime.Now}, firstRender: {firstRender}");
+        Console.WriteLine($"OnAfterRenderAsync вызван в {DateTime.Now}, firstRender: {firstRender}");
+
+        if (firstRender)
+        {
+            try
+            {
+                var uri = new Uri(NavigationManager.Uri);
+                var queryParameters = QueryHelpers.ParseQuery(uri.Query);
+
+                if (queryParameters.TryGetValue("query", out var query))
+                {
+                    searchQuery = query;
+                    products = await ProductService.SearchProductsAsync(searchQuery);
+                }
+
+                UserServiceUrl = UrlService.GetUserServiceUrl();
+                Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
+
+                // products = await ProductService.GetProductsAsyncCategoryId(id);
+                jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
+                if (!string.IsNullOrEmpty(jwt_token))
+                {
+                    var user = JWT_Decode.Check_jwt_token(jwt_token);
+
+                    // string[] parts = jwt_token.Split('.');
+                    // string header = parts[0];
+                    // string payload = parts[1];
+                    // string signature = parts[2];
+                    // string decodedHeader = DecodeBase64Url(header);
+                    // string decodedPayload = DecodeBase64Url(payload);
+                    // // Десериализуем полезную нагрузку в объект JSON
+                    // var payloadss = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(decodedPayload);
+                    // // Извлечение значений как JsonElement, а затем преобразование к нужному типу
+
+                    // long exp = payloadss["exp"].GetInt64(); // Извлекаем значение exp как long
+
+                    // DateTime expirationDate = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
+                    if (user.Email == null)
+                    {
+                        await localStorage.RemoveItemAsync("jwt_token");
+
+                    }
+                    else
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt_token);
+                        var createuser = await client.GetAsync(UserServiceUrl + $"/UserConroller/product-order{user.Id},{user.Email}");
+                        // var createuser = await client.GetAsync(UserServiceUrl + "/UserConroller/check-similar");
+                        if (createuser.IsSuccessStatusCode)
+                        {
+                            var content = await createuser.Content.ReadFromJsonAsync<User>();
+                            user1 = content;
+
+                            // if (!string.IsNullOrEmpty(content))
+                            // {
+                            //     // Десериализация строки в объект User
+                            //     var user = JsonSerializer.Deserialize<User>(content);
+                            //     Console.WriteLine("Response: " + content);
+                            //     if (user != null)
+                            //     {
+                            //         Console.WriteLine("Response user : " + user);
+                            //         user1 = user;
+                            //     }
+
+                            // }
+
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Authorization failed: " + createuser.StatusCode);
+                        }
+
+                        Console.WriteLine("JWT Token: " + jwt_token);
+                        Console.WriteLine("JWT токен действителен");
+                        client.DefaultRequestHeaders.Authorization = null;
+                    }
+                }
+
+                for (int i = 0; i < products.Count; i++)
+                {
+
+                    Category category; // Объявляем переменную category перед использованием
+
+                    if (Categories.TryGetValue(products[i].Category_Id.Id, out category))
+                    {
+
+                        products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
+
+
+                        // // Если категория найдена, обновляем её данные
+                        // Categories[products[i].Category_Id.Id].Image_Category = new Image
+                        //     {
+                        //         Id = products[i].Category_Id.Image_Category.Id,
+                        //         OriginalImageData = imageCategory.CopyImageData
+                        //     };
+
+                    }
+                    else
+                    {
+                        var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Category_Id.Image_Category.Id}");
+                        if (imageCategory != null)
+                        {
+                            products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
+                            Categories.Add(products[i].Category_Id.Id, products[i].Category_Id);
+
+
+                        }
+                    }
+
+                    var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Id_ProductDataImage.Id}");
+                    if (imageProduct != null)
+                    {
+                        products[i].Id_ProductDataImage = new Image { Id = products[i].Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
+
+                    }
+
+                }
+                StateHasChanged();
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+    }
+
+
+
+    public async Task AddProductOrder(Product product)
+    {
+        try
+        {
+
+
+            if (user1.Email != null)
+            {
+
+                // product.Id_ProductDataImage.OriginalImageData = new byte[1];
+                Category.Image_Category = new Image() { Id = 0, Description = "", ImageCopies = new List<ImageCopy>(), OriginalImageData = new byte[1], UploadDate = DateTime.UtcNow };
+                user1.Id_User_Image = new Image() { Id = 0, Description = "", ImageCopies = new List<ImageCopy>(), OriginalImageData = new byte[1], UploadDate = DateTime.UtcNow };
+
+                user1.Status = new Status() { Id = 0, Description = "", StatusName = "" };
+
+                // product_add.Add(Convert.ToInt32(product.Id));
+                Status status = new Status() { Id = 8, Description = "", StatusName = "" };
+                Order order = new Order() { Id = 0, OrdersName = Category.Name_Category, Status = status, Idproduct = product.Id, User = user1 };
+                await OrderService.CreateOrderAsync(order);
+
+                // product_add.Remove(Convert.ToInt32(product.Id));
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+}

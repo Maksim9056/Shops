@@ -16,6 +16,23 @@ namespace Store_Products.Controllers
         {
             _context = context;
         }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<List<Product>>> SearchProducts(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return BadRequest("Search query cannot be empty.");
+            }
+
+            // Assuming you have a data context or a service to fetch products from a database
+            var products = await _context.Products.Include(u => u.Id_ProductDataImage).Include(u => u.Category_Id.Image_Category)
+                                          .Where(p => p.Name_Product.Contains(query) || p.ProductsDescription.Contains(query))
+                                          .ToListAsync();
+
+            return Ok(products);
+        }
+
         //[HttpGet]
         //public  async Task<Product[]> ProductAll()
         //{

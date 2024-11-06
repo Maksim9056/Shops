@@ -77,6 +77,13 @@ namespace Shops.Client.Pages.Admin.Product
             }
         }
 
+        public async Task<List<ShopClassLibrary.ModelShop.Product>> SearchProductsAsync(string query)
+        {
+            // Replace with actual search logic, e.g., a call to an API endpoint
+            var response = await _httpClient.GetFromJsonAsync<List<ShopClassLibrary.ModelShop.Product >>(_url+$"/ProductControler/search?query={query}");
+            return response ?? new List<ShopClassLibrary.ModelShop.Product>();
+        }
+
 
         public async Task UpdateProductAsync(ShopClassLibrary.ModelShop.Product product)
         {

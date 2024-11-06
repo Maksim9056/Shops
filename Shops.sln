@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store_Status", "Store_Statu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoreImage", "StoreImage\StoreImage.csproj", "{FEFA2CB0-24D6-4A2B-BB0E-7CE198946E45}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Story_Test", "Story_Test\Story_Test.csproj", "{E2C46336-5552-44B4-8F3E-E56D18D0AA04}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Story_Test", "Story_Test\Story_Test.csproj", "{E2C46336-5552-44B4-8F3E-E56D18D0AA04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

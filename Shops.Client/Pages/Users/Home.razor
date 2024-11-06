@@ -10,6 +10,8 @@
 @inject IJSRuntime JSRuntime
 @inject IConfiguration Configuration
 
+<input @bind="searchInput" placeholder="Search for products..." />
+<button @onclick="PerformSearch">Search</button>
 
 @if (categoryList.Count() > 0)
 {
@@ -74,32 +76,13 @@
         }
 </style>
 
-@* 
-@if (categoryList.Count() > 0)
-{
-    @foreach (var category in categoryList)
-    {
-        <li>@category.Name_Category</li>
-        @if (@category.Image_Category != null)
-        {
-                        <a @onclick="() => NavigateToCategoryPage(category.Id)">
-
-                <img src="data:image/png;base64,@Convert.ToBase64String(category.Image_Category.OriginalImageData)" alt="Image" width="500" />
-
-
-            </a>
-
-
-        }
-
-    }
-
-
-} *@
-
-
 @code
-{
+{  private string searchInput;
+
+    private void PerformSearch()
+    {
+        NavigationManager.NavigateTo($"/search?query={searchInput}");
+    }
 
     private string Searh_input;
     private List<Category> categoryList = new List<Category>();
