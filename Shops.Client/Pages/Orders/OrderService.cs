@@ -1,4 +1,4 @@
-﻿using ShopClassLibrary.ModelShop;
+﻿ using ShopClassLibrary.ModelShop;
 using ShopClassLibrary.Service;
 using System.Net.Http.Json;
 
@@ -20,7 +20,7 @@ namespace Shops.Client.Pages.Orders
         {
             try
             {
-                return await _httpClient.GetFromJsonAsync<IEnumerable<Order>>(_url + "OrdersConstroler");
+                return await _httpClient.GetFromJsonAsync<IEnumerable<Order>>(_url + "/OrdersConstroler");
             }
             catch (Exception ex)
             {
@@ -28,11 +28,59 @@ namespace Shops.Client.Pages.Orders
             }
         }
 
-        public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(long userId)
+        public async Task<string> Post_AllOrdersAsync(Advance_Payment orders, HashSet<long> selectedOrderIds )
         {
             try
             {
-                return await _httpClient.GetFromJsonAsync<IEnumerable<Order>>(_url + $"/OrdersConstroler/user/{userId}");
+                // Отправляем POST-запрос с заказом
+                var response = await _httpClient.PostAsJsonAsync(_url + "/OrdersConstroler/pay", orders);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Если запрос успешен, десериализуем созданный заказ и выводим ID
+                    var createdOrder = await response.Content.ReadAsStringAsync();
+                    if (createdOrder != null)
+                    {
+                        string successMessage = $"Заказ успешно создан с ID: {createdOrder}";
+                        Console.WriteLine(successMessage);
+                        foreach (var item in orders.SelectedOrderIds)
+                        {
+                            selectedOrderIds.Remove(item);
+
+                        }
+
+                        return successMessage;
+                    }
+                    else
+                    {
+                        string emptyContentMessage = "Заказ создан, но ответ сервера пустой.";
+                        Console.WriteLine(emptyContentMessage);
+                        return emptyContentMessage;
+                    }
+                }
+                else
+                {
+                    // Если запрос не успешен, выводим сообщение об ошибке
+                    var errorMessage = await response.Content.ReadAsStringAsync();
+                    string failureMessage = $"Ошибка при создании заказа: {errorMessage}";
+                    Console.WriteLine(failureMessage);
+                    return failureMessage;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Логируем исключение в случае ошибки и возвращаем сообщение для пользователя
+                string exceptionMessage = $"Произошла ошибка при создании заказа: {ex.Message}";
+                Console.WriteLine(exceptionMessage);
+                return exceptionMessage;
+            }
+        }
+
+        public async Task<List<Order>> GetOrdersByUserIdAsync(long userId)
+        {
+            try
+            {
+                return await _httpClient.GetFromJsonAsync<List<Order>>(_url + $"/OrdersConstroler/user/{userId}");
             }
             catch (Exception ex)
             {

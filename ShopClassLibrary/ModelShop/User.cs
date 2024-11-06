@@ -11,7 +11,7 @@
         public string Password { get; set; }
         public string PasswordHash { get; set; }
         public DateTime CreatedDate { get; set; } // Date the user account was created
-
+        public long Money_Account { get; set; }
         public string PhoneNumber { get; set; }
         public bool IsBlocked { get; set; } // Признак блокировки пользователя
         public Image  Id_User_Image { get; set; }

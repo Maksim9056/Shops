@@ -18,47 +18,211 @@
 @inject ProductService ProductService
 @inject CategoryService CategoryService
 @inject OrderService OrderService
-@inject  JWT_Decode JWT_Decode
-<h3>Cart</h3>
+@inject JWT_Decode JWT_Decode
+
+
+
+@* Контейнер для выбора и отображения заказов *@
+@* Проверка количества товаров и установка класса *@
+
 
 @if (cartItems.Count > 0)
 {
-
-
-
-            <ul>
-        @for (int i  =0;i< orders.Count(); i++)
-        {
-            <li>
-
-
-                <p>@orders.ElementAt(i).OrdersName</p>
-
-              <strong>@cartItems[i].Name_Product</strong> - @cartItems[i].ProductsDescription <br />
-                <div >
-                    <img src="data:image/png;base64,@Convert.ToBase64String(cartItems[i].Id_ProductDataImage.OriginalImageData)" alt="@cartItems[i].Name_Product"  />
-                </div>
-
-                Price: @cartItems[i].ProductPrice <br />
-               Quantity: @cartItems[i].ProductCount
-
-
-                <p>@orders.ElementAt(i).Status.StatusName</p>
-            </li>
-            
-        }
-    </ul>
-        
-      @*   @foreach (var item in cartItems)
-        {
-           
-        } *@
-  
+    <div class="order-container @(cartItems.Count == 1 ? "single-item" : cartItems.Count == 2 ? "double-item" : "multiple-items")">
+        <h3>Ваши заказы</h3>
+        <form id="orderForm">
+            <div class="order-grid">
+                @for (int i = 0; i < orders.Count(); i++)
+                {
+                    var orderId = orders[i].Idproduct;
+                    <div class="order-card @(IsSelected(orderId) ? "active" : "")" @onclick="() => ToggleOrderSelection(orderId)">
+                        <input type="checkbox" class="order-checkbox" checked="@(IsSelected(orderId))" />
+                        <div class="order-header">
+                            <h5>@orders[i].OrdersName</h5>
+                            <span class="order-status">@orders[i].Status.StatusName</span>
+                        </div>
+                        <div class="order-content">
+                            <img src="data:image/png;base64,@Convert.ToBase64String(cartItems[i].Id_ProductDataImage.OriginalImageData)"
+                                 alt="@cartItems[i].Name_Product"
+                                 class="order-image" />
+                            <div class="order-details">
+                                <strong>@cartItems[i].Name_Product</strong><br />
+                                <span class="order-description">@cartItems[i].ProductsDescription</span>
+                                <p><strong>Цена:</strong> @cartItems[i].ProductPrice ₽</p>
+                                <p><strong>Количество:</strong> @cartItems[i].ProductCount</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="text-center mt-4">
+                <button type="button" class="pay-button" @onclick="PaySelectedOrders">Оплатить выбранные</button>
+                @if (!string.IsNullOrEmpty(paymentStatusMessage))
+                {
+                    <p class="payment-status-message">@paymentStatusMessage</p>
+                }
+            </div>
+        </form>
+    </div>
 }
 else
 {
-    <p>Your cart is empty.</p>
+    <p class="text-muted">Ваша корзина пуста.</p>
 }
+
+
+<style>
+    /* Основной контейнер для всех заказов */
+    .order-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        background-color: #f3f4f6;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+    }
+
+        /* Заголовок заказов */
+        .order-container h3 {
+            text-align: center;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+
+    /* Сетка для карточек товаров */
+    .order-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    /* Карточка товара */
+    .order-card {
+        background: linear-gradient(135deg, #ffffff, #f9f9f9);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+
+        .order-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    /* Скрываем сам чекбокс */
+    .order-checkbox {
+        display: none;
+    }
+
+    /* Активный стиль для выбранной карточки */
+    .order-card.active {
+        border: 2px solid #28a745;
+        background-color: #eafbee;
+    }
+
+    /* Заголовок и статус заказа */
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+        .order-header h5 {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 0;
+        }
+
+    .order-status {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 8px;
+        background-color: #d1ecf1;
+        color: #0c5460;
+        font-weight: 500;
+    }
+
+    /* Изображение товара */
+    .order-image {
+        width: 100%;
+        max-width: 180px;
+        height: auto;
+        border-radius: 8px;
+        margin: 15px 0;
+        object-fit: cover;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Детали заказа */
+    .order-details {
+        text-align: center;
+        color: #555;
+        padding: 12px;
+        flex-grow: 1;
+    }
+
+        .order-details strong {
+            display: block;
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+        }
+
+    .order-description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+
+    /* Информация о цене и количестве */
+    .order-details p {
+        margin: 6px 0;
+        font-size: 0.95rem;
+    }
+
+    /* Кнопка оплаты */
+    .pay-button {
+        background-color: #28a745;
+        color: #fff;
+        border: none;
+        padding: 14px 30px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        width: 100%;
+        max-width: 260px;
+        margin: 30px auto 0;
+        display: block;
+        text-align: center;
+    }
+
+        .pay-button:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+
+    /* Стили аналогичны вашим предыдущим */
+    .payment-status-message {
+        color: #0c5460;
+        font-weight: 600;
+        margin-top: 15px;
+        text-align: center;
+    }
+</style>
+
 
 @code {
     private List<Product> cartItems = new List<Product>();
@@ -73,7 +237,7 @@ else
     private Dictionary<long, Category> Categories = new Dictionary<long, Category>();
     public Category Category;
 
-    public IEnumerable<Order> orders = new List<Order>();
+    public List<Order> orders = new List<Order>();
     // protected override async Task OnInitializedAsync()
     // {
     //     cartItems = await orderService.GetCartItemsForUser();
@@ -185,16 +349,17 @@ else
 
                 orders = await OrderService.GetOrdersByUserIdAsync(user1.Id);
                 // user /{ userId}
-
                 // // cartItems.Add(product);
 
                 for (int i = 0; i < orders.Count(); i++)
                 {
-                    var product = await ProductService.GetProductByIdAsync(orders.ElementAt(i).Idproduct);
+
+
+                    var product = await ProductService.GetProductByIdAsync(orders[i].Idproduct);
                     // Category category; // Объявляем переменную category перед использованием
                     Category category; // Объявляем переменную category перед использованием
 
-                    if (Categories.TryGetValue(orders.ElementAt(i).Idproduct, out category))
+                    if (Categories.TryGetValue(product.Category_Id.Id, out category))
                     {
 
                         product.Category_Id.Image_Category = new Image { Id = product.Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
@@ -239,6 +404,57 @@ else
         }
 
     }
+
+
+    // Метод для оплаты выбранных заказов 
+    private string paymentStatusMessage = string.Empty;
+
+    private async Task PaySelectedOrders()
+    {
+        var user = JWT_Decode.Check_jwt_token(jwt_token);
+        if (user.Email != null)
+        {
+
+
+            if (selectedOrderIds.Count > 0)
+            {
+                Advance_Payment advance_Payment = new Advance_Payment()
+                {
+                    // Здесь можно указать детали оплаты
+                };
+                advance_Payment.SelectedOrderIds = selectedOrderIds;
+                advance_Payment.Id_User = user.Id;
+
+                string resultMessage = await OrderService.Post_AllOrdersAsync(advance_Payment, selectedOrderIds);
+                paymentStatusMessage = resultMessage; // Сохраняем сообщение для отображения пользователю
+                Console.WriteLine("Оплачиваем товары с ID: " + string.Join(", ", selectedOrderIds));
+                await   OnAfterRenderAsync(true);
+
+            }
+            else
+            {
+                paymentStatusMessage = "Выберите хотя бы один товар для оплаты.";
+            } 
+        }
+    }
+
+    private HashSet<long> selectedOrderIds = new HashSet<long>();
+
+    // Метод для добавления или удаления товара из списка выбранных
+    private void ToggleOrderSelection(long orderId)
+    {
+        if (selectedOrderIds.Contains(orderId))
+        {
+            selectedOrderIds.Remove(orderId);
+        }
+        else
+        {
+            selectedOrderIds.Add(orderId);
+        }
+    }
+
+    // Проверка, является ли товар выбранным
+    private bool IsSelected(long orderId) => selectedOrderIds.Contains(orderId);
 
 
 }

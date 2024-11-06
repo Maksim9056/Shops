@@ -42,17 +42,30 @@ namespace Store_Orders.Controllers
         {
             try
             {
-                var user =  await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                var user =  await _context.Users.Include(u  =>u.Status).Include(u => u.Id_User_Image).FirstOrDefaultAsync(u => u.Id == userId);
                 var orders =  _context.Orders
                     .Include(o => o.User).Include(o => o.Status)
-                    .Where(o => o.User == user);
+                    .Where(o => o.User == user).ToList();
+
+                Parallel.ForEach(orders, product =>
+                {
+                    //if (product.Id_ProductDataImage != null)
+                    //{
+                    product.User.Id_User_Image.OriginalImageData = new byte[0];
+                    //}
+                    product.User.Id_User_Image.ImageCopies = new List<ImageCopy>();
+                 //if (product.Category_Id?.Image_Category != null)
+                 //{
+                 product.User.Orders = new List<Order>();
+                    //}
+                });
 
                 if (orders == null || !orders.Any())
                 {
                     return NotFound($"Заказы для пользователя с ID {userId} не найдены.");
                 }
-                var a = orders.ToList();
-                return Ok(a);
+                //var a = orders.ToList();
+                return Ok(orders);
             }
             catch (Exception ex)
             {
@@ -89,7 +102,74 @@ namespace Store_Orders.Controllers
             }
         }
 
-        // Создать новый заказ
+        // 
+        [HttpPost("pay")]
+        public async Task<ActionResult<string>> Order([FromBody] Advance_Payment order)
+        {
+            try
+            {
+
+                var user = await _context.Users
+                .Include(u => u.Id_User_Image)
+                    .ThenInclude(i => i.ImageCopies)
+                .Include(u => u.Status)
+                .FirstOrDefaultAsync(u => u.Id == order.Id_User);
+              long Orders_product=0;
+
+                // Извлекаем заказы, которые необходимо оплатить
+                var ordersToPay = await _context.Orders.Include(u => u.Status)
+                    .Where(o =>  order.SelectedOrderIds.Contains(o.Idproduct) && o.User.Id == user.Id)
+                    .ToListAsync();
+
+
+
+
+                if (ordersToPay.Count != order.SelectedOrderIds.Count)
+                {
+                    return BadRequest("Некоторые заказы не найдены или не принадлежат пользователю.");
+                }
+                long  SUMM = 0;
+                foreach( var i in order.SelectedOrderIds)
+                {
+                    
+                    var prodduct = await _context.Products.FirstOrDefaultAsync(u => u.Id == i);
+                    if(prodduct != null)
+                    {
+                        SUMM = +prodduct.ProductPrice;
+
+                    }
+                }
+
+                // Рассчитываем общую стоимость заказов
+                var totalAmount = SUMM;
+
+                // Проверяем, достаточно ли средств на счету
+                if (user.Money_Account < totalAmount)
+                {
+                    return BadRequest("Недостаточно средств для оплаты заказов.");
+                }
+
+                // Списываем сумму со счета пользователя и обновляем статус заказов
+                user.Money_Account -= totalAmount;
+                foreach (var orders in ordersToPay)
+                {
+                    orders.Status = await _context.Status.FirstOrDefaultAsync(s => s.Description == "Заказ оплачен!");
+                }
+
+                // Сохраняем изменения
+                await _context.SaveChangesAsync();
+
+                return Ok("Оплата прошла успешно.");
+            }
+            catch (Exception ex)
+            {
+                // Логирование ошибки
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+         // Создать новый заказ
         [HttpPost]
         public async Task<ActionResult<Order>> CreateOrder([FromBody] Order order)
         {

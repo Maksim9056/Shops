@@ -9,7 +9,7 @@ namespace Shops.Client.Pages.Admin.Product
     {
         private readonly HttpClient _httpClient;
         private readonly UrlService _apiKey;
-        private readonly string _url;
+        public readonly string _url;
         public ProductService(HttpClient httpClient, UrlService apiKey)
         {
             _httpClient = httpClient;
@@ -45,7 +45,7 @@ namespace Shops.Client.Pages.Admin.Product
 
         public async Task<ShopClassLibrary.ModelShop.Product> GetProductByIdAsync(long id)
         {
-            return await _httpClient.GetFromJsonAsync<ShopClassLibrary.ModelShop.Product>(_url + $"ProductControler/{id}");
+            return await _httpClient.GetFromJsonAsync<ShopClassLibrary.ModelShop.Product>(_url + $"/ProductControler/{id}");
         }
 
         public async Task<ShopClassLibrary.ModelShop.Product> CreateProductAsync(ShopClassLibrary.ModelShop.Product product)
@@ -79,12 +79,12 @@ namespace Shops.Client.Pages.Admin.Product
 
         public async Task UpdateProductAsync(ShopClassLibrary.ModelShop.Product product)
         {
-            await _httpClient.PutAsJsonAsync(_url + $"ProductControler/{product.Id}", product);
+            await _httpClient.PutAsJsonAsync(_url + $"/ProductControler/{product.Id}", product);
         }
 
         public async Task DeleteProductAsync(long id)
         {
-            await _httpClient.DeleteAsync(_url + $"ProductControlers/{id}");
+            await _httpClient.DeleteAsync(_url + $"/ProductControlers/{id}");
         }
     }
 
