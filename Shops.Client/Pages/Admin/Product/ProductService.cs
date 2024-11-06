@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using ShopClassLibrary.ModelShop;
 using Shops.Client.Pages.Admin.Category;
 using System.Collections.Generic;
 using System.Net.Http.Json;
@@ -79,12 +80,14 @@ namespace Shops.Client.Pages.Admin.Product
 
         public async Task UpdateProductAsync(ShopClassLibrary.ModelShop.Product product)
         {
+            product.Category_Id.Image_Category.ImageCopies = new List<ImageCopy>();
+            product.Id_ProductDataImage.ImageCopies = new List<ImageCopy>();
             await _httpClient.PutAsJsonAsync(_url + $"/ProductControler/{product.Id}", product);
         }
 
         public async Task DeleteProductAsync(long id)
         {
-            await _httpClient.DeleteAsync(_url + $"/ProductControlers/{id}");
+            await _httpClient.DeleteAsync(_url + $"/ProductControler/{id}");
         }
     }
 

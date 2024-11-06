@@ -177,7 +177,7 @@ namespace Store_Products.Controllers
 
         // PUT: api/Products/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(long id, Product product)
+        public async Task<IActionResult> PutProduct(long id, [FromBody]  Product product)
         {
             if (id != product.Id)
             {
