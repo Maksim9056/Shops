@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using ShopClassLibrary;
+using Store_Orders.Service;
 
 namespace Store_Orders
 {
@@ -17,6 +18,9 @@ namespace Store_Orders
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddSwaggerGen();
+
+
+
             builder.Services.AddDbContext<ShopData>(options =>
                  options.UseNpgsql(builder.Configuration.GetConnectionString("Shop")));
             builder.Services.AddCors(options =>
@@ -34,6 +38,8 @@ namespace Store_Orders
                 serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // Тайм-аут для заголовков
             });
 
+            builder.Services.AddScoped<OrderService>();
+            builder.Services.AddScoped<UserService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
