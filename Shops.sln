@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoreImage", "StoreImage\St
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Story_Test", "Story_Test\Story_Test.csproj", "{E2C46336-5552-44B4-8F3E-E56D18D0AA04}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shops_Gateway", "Shops_Gateway\Shops_Gateway.csproj", "{01880931-9F4F-4DA7-9892-B58947DA29CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{E2C46336-5552-44B4-8F3E-E56D18D0AA04}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2C46336-5552-44B4-8F3E-E56D18D0AA04}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2C46336-5552-44B4-8F3E-E56D18D0AA04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01880931-9F4F-4DA7-9892-B58947DA29CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01880931-9F4F-4DA7-9892-B58947DA29CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01880931-9F4F-4DA7-9892-B58947DA29CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01880931-9F4F-4DA7-9892-B58947DA29CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
