@@ -81,7 +81,7 @@
           "Port": 7091
         }
       ],
-      "UpstreamPathTemplate": "/StatusConroller",
+      "UpstreamPathTemplate": "/status",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
