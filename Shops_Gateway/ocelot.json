@@ -1,7 +1,7 @@
 {
   "Routes": [
     {
-      "DownstreamPathTemplate": "/Task",
+      "DownstreamPathTemplate": "/Task/{action}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -9,11 +9,11 @@
           "Port": 7026
         }
       ],
-      "UpstreamPathTemplate": "/tasks",
+      "UpstreamPathTemplate": "/tasks/{action}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
-      "DownstreamPathTemplate": "/ProjectsControler",
+      "DownstreamPathTemplate": "/ProjectsControler/{action}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -21,11 +21,11 @@
           "Port": 7296
         }
       ],
-      "UpstreamPathTemplate": "/projects",
+      "UpstreamPathTemplate": "/projects/{action}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
-      "DownstreamPathTemplate": "/UserConroller",
+      "DownstreamPathTemplate": "/UserConroller/{action}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -33,11 +33,11 @@
           "Port": 7266
         }
       ],
-      "UpstreamPathTemplate": "/users",
+      "UpstreamPathTemplate": "/users/{action}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
-      "DownstreamPathTemplate": "/OrdersConstroler",
+      "DownstreamPathTemplate": "/OrdersConstroler/{action}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -45,7 +45,7 @@
           "Port": 7033
         }
       ],
-      "UpstreamPathTemplate": "/orders",
+      "UpstreamPathTemplate": "/orders/{action}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
@@ -57,11 +57,11 @@
           "Port": 7105
         }
       ],
-      "UpstreamPathTemplate": "/products",
+      "UpstreamPathTemplate": "/products/{action}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
-      "DownstreamPathTemplate": "/CategoryControler",
+      "DownstreamPathTemplate": "/CategoryControler/{action}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -69,11 +69,11 @@
           "Port": 7129
         }
       ],
-      "UpstreamPathTemplate": "/categories",
+      "UpstreamPathTemplate": "/categories/{action}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
-      "DownstreamPathTemplate": "/StatusConroller",
+      "DownstreamPathTemplate": "/StatusConroller/{action}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -81,11 +81,11 @@
           "Port": 7091
         }
       ],
-      "UpstreamPathTemplate": "/status",
+      "UpstreamPathTemplate": "/status/{action}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     },
     {
-      "DownstreamPathTemplate": "/Image",
+      "DownstreamPathTemplate": "/Image/{action}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -93,7 +93,7 @@
           "Port": 7192
         }
       ],
-      "UpstreamPathTemplate": "/images",
+      "UpstreamPathTemplate": "/images/{action}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
     }
   ],
