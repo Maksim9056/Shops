@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using ShopClassLibrary;
+using Store_Products.Service;
 
 namespace Store_Products
 {
@@ -17,6 +18,10 @@ namespace Store_Products
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddHttpClient();
+
+            builder.Services.AddScoped<ProductService>();
+
+            
             builder.Services.AddDbContext<ShopData>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("Shop")));
             builder.Services.AddCors(options =>
