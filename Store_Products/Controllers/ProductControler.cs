@@ -34,6 +34,21 @@ namespace Store_Products.Controllers
             return Ok(products);
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        {
+            var products = await _productService.GetProductsAsync();
+            return Ok(products);
+        }
+
+        [HttpGet("CategoryId{id}")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProductsByCategoryId(long id)
+        {
+            var products = await _productService.GetProductsByCategoryIdAsync(id);
+            return Ok(products);
+        }
+
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProductById(int id)
         {
