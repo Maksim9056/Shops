@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:latest
+    container_name: my_redis
+    ports:
+      - "6379:6379" # Настройка порта для доступа снаружи
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge

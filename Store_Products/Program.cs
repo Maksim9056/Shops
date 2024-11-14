@@ -45,6 +45,13 @@ namespace Store_Products
                 serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5); // Тайм-аут для заголовков
             });
 
+            var redisConnectionString = builder.Configuration.GetSection("Redis")["ConnectionString"];
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = redisConnectionString;
+                options.InstanceName = "ProductCache_";
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

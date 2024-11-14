@@ -28,7 +28,7 @@ namespace Store_Products.Service
             var productJson = JsonConvert.SerializeObject(product);
             var message = new Message<string, string> { Key = product.Id.ToString(), Value = productJson };
             var deliveryResult = await _producer.ProduceAsync(_topicName, message);
-            Console.WriteLine($"Сообщение '{deliveryResult.Value}' доставлено в {deliveryResult.TopicPartitionOffset}");
+            Console.WriteLine($"Доставлено {product.Id} {product.Name_Product}");
             await _producer.ProduceAsync("ProductUpdates", message);
         }
 
