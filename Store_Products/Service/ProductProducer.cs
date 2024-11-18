@@ -15,9 +15,9 @@ namespace Store_Products.Service
             var config = new ProducerConfig
             {
                 BootstrapServers = configuration["Kafka:BootstrapServers"],
-                SecurityProtocol = SecurityProtocol.Plaintext, // Подтвердите, что используется PLAINTEXT
-                Acks = Acks.All, // Требуем подтверждение от всех реплик для надёжной доставки
-                MessageMaxBytes = 200000000 // Устанавливаем максимальный размер сообщения
+                SecurityProtocol = SecurityProtocol.Plaintext,
+                Acks = Acks.All,
+                MessageMaxBytes = 10000000 // Уменьшен до 10MB
             };
 
             _producer = new ProducerBuilder<string, string>(config).Build();
@@ -25,17 +25,45 @@ namespace Store_Products.Service
 
         public async Task SendProductUpdateAsync(Product product)
         {
+            // Исключаем большие данные из JSON, если они не нужны для отправки
+            if (product.Id_ProductDataImage != null)
+            {
+                product.Id_ProductDataImage.OriginalImageData = null; // Или используйте [JsonIgnore] на поле
+            }
+            if (product.Category_Id?.Image_Category != null)
+            {
+                product.Category_Id.Image_Category.OriginalImageData = null; // Или используйте [JsonIgnore]
+            }
+
             var productJson = JsonConvert.SerializeObject(product);
             var message = new Message<string, string> { Key = product.Id.ToString(), Value = productJson };
-            var deliveryResult = await _producer.ProduceAsync(_topicName, message);
-            Console.WriteLine($"Доставлено {product.Id} {product.Name_Product}");
-            await _producer.ProduceAsync("ProductUpdates", message);
+
+            try
+            {
+                await _producer.ProduceAsync(_topicName, message);
+                Console.WriteLine($"Сообщение с {product.Id} доставлено.");
+            }
+            catch (ProduceException<string, string> ex)
+            {
+                Console.WriteLine($"Ошибка при отправке сообщения с ID: {product.Id}. Ошибка: {ex.Error.Reason}");
+                // Логика повторной отправки или обработки ошибки
+            }
         }
 
         public async Task SendProductDeleteAsync(long productId)
         {
             var message = new Message<string, string> { Key = productId.ToString(), Value = null };
-            await _producer.ProduceAsync("ProductUpdates", message);
+
+            try
+            {
+                await _producer.ProduceAsync(_topicName, message);
+                Console.WriteLine($"Сообщение с ID {productId} удалено.");
+            }
+            catch (ProduceException<string, string> ex)
+            {
+                Console.WriteLine($"Ошибка при удалении сообщения с ID: {productId}. Ошибка: {ex.Error.Reason}");
+                // Логика повторной отправки или обработки ошибки
+            }
         }
     }
 
