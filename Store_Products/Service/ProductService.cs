@@ -4,27 +4,26 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using System.Threading.Tasks;
 
 namespace Store_Products.Service
 {
     public class ProductService
     {
         private readonly ShopData _context;
-        //private readonly ProductProducer _producer;
-        //private readonly ProductConsumer _consumer;
         private readonly IDistributedCache _cache;
 
-        public ProductService(ShopData context,/* ProductProducer producer, ProductConsumer consumer,*/ IDistributedCache cache)
+        public ProductService(ShopData context, IDistributedCache cache)
         {
             _context = context;
-            //_producer = producer;
-            //_consumer = consumer;
             _cache = cache;
-
         }
+
         public async Task<List<Product>> GetProductsAsync()
         {
-            var products = await _context.Products.Include(u => u.Id_ProductDataImage)
+            var products = await _context.Products
+                .AsNoTracking() // Улучшаем производительность, убирая отслеживание
+                .Include(u => u.Id_ProductDataImage)
                 .Include(u => u.Category_Id.Image_Category)
                 .ToListAsync();
 
@@ -39,27 +38,21 @@ namespace Store_Products.Service
 
         public async Task<List<Product>> GetProductsByCategoryIdAsync(long categoryId)
         {
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // Устанавливаем тайм-аут в 10 секунд
+            var cacheKey = $"Category_{categoryId}_Products";
+            var cachedProducts = await _cache.GetStringAsync(cacheKey);
 
-            // Сначала пытаемся получить продукт из Kafka
-            //var product = await _consumer.GetProductListFromKafkaAsync(categoryId, cts.Token);
-            //if (product != null)
-            //{
-            //    return product;
-            //}
+            if (!string.IsNullOrEmpty(cachedProducts))
+            {
+                return JsonConvert.DeserializeObject<List<Product>>(cachedProducts);
+            }
 
             var products = await _context.Products
+                .AsNoTracking() // Улучшаем производительность, убирая отслеживание
                 .Include(u => u.Id_ProductDataImage)
                 .Include(u => u.Category_Id.Image_Category)
                 .Include(u => u.Status)
                 .Where(u => u.Category_Id.Id == categoryId)
                 .ToListAsync();
-
-            //// Сохраняем результат в Kafka
-            //foreach (var product in products)
-            //{
-            //    await _producer.SendProductUpdateAsync(product);
-            //}
 
             Parallel.ForEach(products, product =>
             {
@@ -67,8 +60,12 @@ namespace Store_Products.Service
                 product.Category_Id.Image_Category.OriginalImageData = new byte[0];
             });
 
+            // Кэшируем результат для этой категории
+            await CacheListAsync(cacheKey, products, TimeSpan.FromMinutes(10));
+
             return products;
         }
+
         public async Task<List<Product>> SearchProductsAsync(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -76,31 +73,30 @@ namespace Store_Products.Service
                 return new List<Product>();
             }
 
+            var cacheKey = $"Search_{query}_Products";
+            var cachedProducts = await _cache.GetStringAsync(cacheKey);
 
-           
+            if (!string.IsNullOrEmpty(cachedProducts))
+            {
+                return JsonConvert.DeserializeObject<List<Product>>(cachedProducts);
+            }
 
-            //var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10)); // Например, 10 секунд
-
-            //// Пытаемся найти продукты через Kafka
-            //var products = await _consumer.GetProductsByQueryAsync(query, cts.Token);
-            //if (products != null && products.Any())
-            //{
-            //    return products;
-            //}
-
-            // Если в Kafka данные не найдены, выполняем поиск в БД
-        var    products = await _context.Products
+            var products = await _context.Products
+                .AsNoTracking() // Улучшаем производительность, убирая отслеживание
                 .Include(p => p.Id_ProductDataImage)
                 .Include(u => u.Status)
                 .Include(p => p.Category_Id.Image_Category)
                 .Where(p => p.Name_Product.Contains(query))
                 .ToListAsync();
 
-            //// Сохраняем результат в Kafka
-            //foreach (var product in products)
-            //{
-            //    await _producer.SendProductUpdateAsync(product);
-            //}
+            Parallel.ForEach(products, product =>
+            {
+                product.Id_ProductDataImage.OriginalImageData = new byte[0];
+                product.Category_Id.Image_Category.OriginalImageData = new byte[0];
+            });
+
+            // Кэшируем результат поиска
+            await CacheListAsync(cacheKey, products, TimeSpan.FromMinutes(10));
 
             return products;
         }
@@ -112,42 +108,21 @@ namespace Store_Products.Service
 
             if (!string.IsNullOrEmpty(cachedProduct))
             {
-                var Product = JsonConvert.DeserializeObject<Product>(cachedProduct);
-                Console.WriteLine($"Доставлено из Redis: {Product.Id} {Product.Name_Product} {Product.Category_Id.Name_Category}");
-                return Product;
+                return JsonConvert.DeserializeObject<Product>(cachedProduct);
             }
-            //var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20)); // Например, 30 секунд
-            //var product = await _consumer.GetProductFromKafkaAsync(id, cts.Token);
 
-            // Сначала пытаемся получить продукт из Kafka
-            //var product = await _consumer.GetProductFromKafkaAsync(id, cts.Token);
-            //if (product != null)
-            //{
-            //    Console.WriteLine($"Доставлено из Kafka  {product.Id} {product.Name_Product}");
-
-            //    return product;
-            //}
-
-            // Если продукт не найден в Kafka, получаем его из БД и сохраняем в Kafka
-            var  product = await _context.Products
+            var product = await _context.Products
+                .AsNoTracking() // Улучшаем производительность, убирая отслеживание
                 .Include(p => p.Id_ProductDataImage)
                 .Include(p => p.Category_Id.Image_Category)
                 .FirstOrDefaultAsync(p => p.Id == id);
-
-            Console.WriteLine($"Доставлено из базы даных  {product.Id} {product.Name_Product}");
 
             if (product != null)
             {
                 product.Id_ProductDataImage.OriginalImageData = new byte[0];
                 product.Category_Id.Image_Category.OriginalImageData = new byte[0];
-            }
 
-            if (product != null)
-            {
-                //await _producer.SendProductUpdateAsync(product);
-                await CacheProductAsync(cacheKey, product);
-                //await _producer.SendProductUpdateAsync(product);
-                Console.WriteLine($"Доставлено из базы данных: {product.Id} {product.Name_Product}");
+                await CacheProductAsync(cacheKey, product); // Кэшируем продукт
             }
 
             return product;
@@ -158,8 +133,10 @@ namespace Store_Products.Service
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            // Отправляем обновление продукта в Kafka
-            //await _producer.SendProductUpdateAsync(product);
+            // Очистка кэша категорий для обновления данных
+            var cacheKey = $"Category_{product.Category_Id.Id}_Products";
+            await _cache.RemoveAsync(cacheKey);
+
             return product;
         }
 
@@ -176,8 +153,11 @@ namespace Store_Products.Service
             _context.Products.Update(existingProduct);
             await _context.SaveChangesAsync();
 
-            // Обновляем продукт в Kafka
-            //await _producer.SendProductUpdateAsync(existingProduct);
+            // Обновляем кэш продукта и категорий
+            var cacheKey = $"Product_{product.Id}";
+            await CacheProductAsync(cacheKey, product); // Обновление кэша продукта
+            await _cache.RemoveAsync($"Category_{product.Category_Id.Id}_Products"); // Очистка кэша категории
+
             return true;
         }
 
@@ -189,10 +169,16 @@ namespace Store_Products.Service
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
-            // Удаляем продукт в Kafka
-            //await _producer.SendProductDeleteAsync(id);
+            // Удаляем продукт из кэша
+            var cacheKey = $"Product_{id}";
+            await _cache.RemoveAsync(cacheKey);
+
+            // Очистка кэша категории
+            await _cache.RemoveAsync($"Category_{product.Category_Id.Id}_Products");
+
             return true;
         }
+
         private async Task CacheProductAsync(string cacheKey, Product product)
         {
             var productJson = JsonConvert.SerializeObject(product);
@@ -203,7 +189,16 @@ namespace Store_Products.Service
 
             await _cache.SetStringAsync(cacheKey, productJson, cacheOptions);
         }
+
+        private async Task CacheListAsync<T>(string cacheKey, List<T> list, TimeSpan expiration)
+        {
+            var listJson = JsonConvert.SerializeObject(list);
+            var cacheOptions = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = expiration
+            };
+
+            await _cache.SetStringAsync(cacheKey, listJson, cacheOptions);
+        }
     }
 }
-
-

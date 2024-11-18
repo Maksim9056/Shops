@@ -10,8 +10,7 @@ using static OpenQA.Selenium.BiDi.Modules.Script.RealmInfo;
 
 namespace Story_Test
 {
-    [TestFixture]
-    public class User_cart
+     public class User_cart
     {
         HttpClient client;
 
