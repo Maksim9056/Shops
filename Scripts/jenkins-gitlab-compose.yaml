@@ -1,5 +1,9 @@
 version: '3.9'
 
+networks:
+  gitlab_network:
+    driver: bridge
+
 services:
   jenkins:
     image: jenkins/jenkins:lts
@@ -12,6 +16,8 @@ services:
     environment:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
     restart: always
+    networks:
+      - gitlab_network
 
   gitlab:
     image: gitlab/gitlab-ce:latest
@@ -26,9 +32,15 @@ services:
       - gitlab_data:/var/opt/gitlab
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://192.168.1.204:8929'
+        external_url 'http://gitlab:8929'
         gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        registry['enable'] = true
+        registry_external_url 'http://docker-registry:5000'
+        gitlab_rails['registry_host'] = 'docker-registry'
+        gitlab_rails['registry_port'] = '5000'
     restart: always
+    networks:
+      - gitlab_network
 
   gitlab-runner:
     image: gitlab/gitlab-runner:latest
@@ -39,8 +51,24 @@ services:
       - gitlab_runner_config:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock  # Для Docker Executor
     environment:
-      - CI_SERVER_URL=http://192.168.1.204:8929  # Сетевой адрес GitLab
+      - CI_SERVER_URL=http://gitlab:8929  # Внутренний DNS GitLab в сети
     restart: always
+    networks:
+      - gitlab_network
+
+  docker-registry:
+    image: registry:2
+    container_name: docker-registry
+    ports:
+      - "5000:5000"      # Docker Registry port
+    volumes:
+      - registry_data:/var/lib/registry
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+      REGISTRY_HTTP_ADDR: 0.0.0.0:5000
+    restart: always
+    networks:
+      - gitlab_network
 
 volumes:
   jenkins_home:
@@ -48,3 +76,4 @@ volumes:
   gitlab_logs:
   gitlab_data:
   gitlab_runner_config:
+  registry_data:
