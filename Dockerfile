@@ -4,6 +4,10 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+RUN ls -la /workspace
+RUN ls -la /workspace/publish
+RUN ls -la /workspace/Scripts/Start
+
 # Проверяем содержимое папки /workspace/publish
 RUN ls -la /workspace/publish || echo "Папка /workspace/publish отсутствует"
 
