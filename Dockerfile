@@ -26,7 +26,7 @@ EXPOSE 8081
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=base /app/publish .
 
 # Копируем скрипт из вашей папки
 COPY Scripts/Start/run.sh /app/run.sh
