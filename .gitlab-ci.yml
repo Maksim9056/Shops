@@ -5,8 +5,10 @@ stages:
 build:
   stage: build
   script:
-    - echo "Building Docker image..."
-    - docker build -t my-app .
+    - git config --global credential.helper store
+    - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204/maksdev/shops.git" > ~/.git-credentials
+    - git pull
+    - echo "Building project..."
 
 test:
   stage: test
