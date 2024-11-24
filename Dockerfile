@@ -4,9 +4,6 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-# Проверяем содержимое папки /workspace/publish
-#RUN ls -la /publish || echo "Папка /publish отсутствует"
-
 # Копируем опубликованные файлы из папки /workspace/publish
 COPY /publish /app/
 
