@@ -5,20 +5,6 @@
 **/*.log
 **/*.tmp
 
-# Исключаем файлы Git, кроме важных
-**/.git
-!.git/HEAD
-!.git/config
-!.git/packed-refs
-!.git/refs/heads/**
-
-# Исключаем Dockerfile только в поддиректориях, но включаем в корне
-**/Dockerfile*
-!Dockerfile
-
-# Исключаем временные файлы
-**/README.md
-**/LICENSE
-
-# Включаем папку publish
+# Включаем publish и Scripts
 !**/publish
+!**/Scripts
