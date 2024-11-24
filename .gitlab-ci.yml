@@ -6,8 +6,8 @@ build:
   stage: build
   script:
     - git config --global credential.helper store
-    - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204/maksdev/shops.git" > ~/.git-credentials
-    - git clone http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204/maksdev/shops.git .
+    - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git" > ~/.git-credentials
+    - git clone http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git .
     - docker build -t my-app .
 
 test:
