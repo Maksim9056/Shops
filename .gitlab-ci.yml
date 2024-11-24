@@ -1,0 +1,15 @@
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - echo "Building Docker image..."
+    - docker build -t my-app .
+
+test:
+  stage: test
+  script:
+    - echo "Running tests in Docker container..."
+    - docker run --rm my-app ./run-tests.sh
