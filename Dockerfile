@@ -1,32 +1,9 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-#FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-#ARG BUILD_CONFIGURATION=Release
-#WORKDIR /src
-
-# Копируем .csproj файлы относительно корневой директории
-#COPY ["Shops/Shops.csproj", "Shops/"]
-#COPY ["ShopClassLibrary/ShopClassLibrary.csproj", "ShopClassLibrary/"]
-#COPY ["Shops.Client/Shops.Client.csproj", "Shops.Client/"]
-
-# Выполняем восстановление зависимостей
-#RUN dotnet restore "./Shops/Shops.csproj"
-
-# Копируем весь проект для сборки
-#COPY . .
-#WORKDIR "/src/Shops"
-#RUN dotnet build "./Shops.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-#FROM build AS publish
-#ARG BUILD_CONFIGURATION=Release
-#RUN dotnet publish "./Shops.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
-WORKDIR /app
-COPY --from=base /app/publish .
+COPY  workspace/app/publish /app/
 
 # Копируем скрипт из вашей папки
 COPY Scripts/Start/run.sh /app/run.sh
