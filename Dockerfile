@@ -8,7 +8,9 @@ RUN dotnet --info
 
 # Копируем все файлы из текущей директории репозитория в папку /app
 COPY . /app/
-RUN  dotnet build -c Release &&  dotnet publish -c Release -o /app/publish &&  echo 'Сборка завершена'
+
+RUN dotnet build -c Release
+RUN dotnet publish -c Release -o /app/publish
 # Проверяем содержимое папки /app после копирования
 RUN ls -la /app
 
