@@ -5,6 +5,7 @@ EXPOSE 8080
 EXPOSE 8081
 
 RUN dotnet --info
+RUN  dotnet build -c Release &&  dotnet publish -c Release -o /app/publish &&
 # Копируем все файлы из текущей директории репозитория в папку /app
 COPY . /app/
 
