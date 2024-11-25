@@ -1,25 +1,32 @@
 stages:
   - build
-  - test
+  - publish
+
+variables:
+  DOCKER_HOST: tcp://host.docker.internal:2375
+  DOCKER_DRIVER: overlay2
+  REGISTRY_URL: "192.168.1.204:5000" # Укажите адрес вашего Docker Registry
+  IMAGE_NAME: "${REGISTRY_URL}/my-shops"
 
 build:
   stage: build
   image: docker:latest
-  variables:
-    DOCKER_HOST: tcp://host.docker.internal:2375
-    DOCKER_DRIVER: overlay2
-   
   services:
     - docker:dind
   script:
-    - docker info
     - echo "Building the Docker image..."
-    - docker build -t my-shops .
+    - docker build -t $IMAGE_NAME .
+    - docker tag $IMAGE_NAME $IMAGE_NAME:latest
   only:
     - master
 
-test:
-  stage: test
+publish:
+  stage: publish
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - echo "Running tests in Docker container..."
-    - docker run --rm my-shops .
+    - echo "Pushing the Docker image to the registry..."
+    - docker push $IMAGE_NAME
+  only:
+    - master
