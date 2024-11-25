@@ -12,7 +12,7 @@ build:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
   script:
-    - echo "Current directory: $(pwd)"
+    - echo "Current directory:$(pwd)"
     - echo "Contents of the directory:"
     - ls -la
     - echo "Cloning the repository..."
