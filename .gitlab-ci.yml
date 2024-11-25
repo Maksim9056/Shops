@@ -8,9 +8,9 @@ build:
   services:
     - name: docker:dind
       command: ["--privileged"]
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
+  #variables:
+  #  DOCKER_HOST: tcp://docker:2375
+  #  DOCKER_TLS_CERTDIR: ""
   script:
     - echo "Building the Docker image..."
     - docker build -t my-shops .
