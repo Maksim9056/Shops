@@ -22,4 +22,4 @@ test:
   stage: test
   script:
     - echo "Running tests in Docker container..."
-    - docker run --rm my-shopp .
+    - docker run --rm my-shop .
