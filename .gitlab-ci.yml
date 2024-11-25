@@ -1,17 +1,25 @@
 stages:
   - build
   - test
-
 build:
   stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
   script:
+    - echo "Cloning the repository..."
     - git config --global credential.helper store
     - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git" > ~/.git-credentials
     - git clone http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git .
-    - docker build -t my-app .
-
+    - echo "Building the Docker image..."
+    - docker build -t my-shop .
+  only:
+    - master
 test:
   stage: test
   script:
     - echo "Running tests in Docker container..."
-    - docker run --rm my-app ./run-tests.sh
+    - docker run --rm my-shopp .
