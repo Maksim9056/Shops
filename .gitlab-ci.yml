@@ -16,6 +16,9 @@ build:
     - echo "Contents of the directory:"
     - ls -la
     - echo "Cloning the repository..."
+    - echo "Cleaning up existing files..."
+    - rm -rf ./*           # Удалить все файлы в текущей директории
+    - rm -rf ./.git        # Удалить папку .git, если она существует
     - git config --global credential.helper store
     - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git" > ~/.git-credentials
     - git clone http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git .
