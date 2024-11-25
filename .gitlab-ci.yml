@@ -17,6 +17,7 @@ build:
     - ls -la
     - echo "Cloning the repository..."
     - echo "Cleaning up existing files..."
+    - find . -mindepth 1 -delete
     - rm -rf ./*           # Удалить все файлы в текущей директории
     - rm -rf ./.git        # Удалить папку .git, если она существует
     - git config --global credential.helper store
