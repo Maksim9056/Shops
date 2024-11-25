@@ -4,7 +4,7 @@ stages:
 
 build:
   stage: build
-  image: docker:20.10.24-node
+  image: docker:latest
   services:
     - name: docker:dind
       command: ["--privileged"]
