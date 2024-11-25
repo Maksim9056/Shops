@@ -1,9 +1,10 @@
 stages:
   - build
   - test
+  
 build:
   stage: build
-  image: docker:20.10.24
+  image: node:latest
   services:
     - name: docker:dind
       command: ["--privileged"]
@@ -16,9 +17,10 @@ build:
     - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git" > ~/.git-credentials
     - git clone http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git .
     - echo "Building the Docker image..."
-    - docker build -t my-shops .
+    - docker build -t my-app .
   only:
     - master
+
 test:
   stage: test
   script:
