@@ -5,7 +5,8 @@ build:
   stage: build
   image: docker:20.10.24
   services:
-    - docker:dind
+    - name: docker:dind
+      command: ["--privileged"]
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
@@ -15,11 +16,11 @@ build:
     - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git" > ~/.git-credentials
     - git clone http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git .
     - echo "Building the Docker image..."
-    - docker build -t my-app .
+    - docker build -t my-shops .
   only:
     - master
 test:
   stage: test
   script:
     - echo "Running tests in Docker container..."
-    - docker run --rm my-shop .
+    - docker run --rm my-shops .
