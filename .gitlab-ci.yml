@@ -1,7 +1,7 @@
 stages:
   - build
   - test
-  
+
 build:
   stage: build
   image: node:latest
@@ -12,6 +12,9 @@ build:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
   script:
+    - echo "Current directory: $(pwd)"
+    - echo "Contents of the directory:"
+    - ls -la
     - echo "Cloning the repository..."
     - git config --global credential.helper store
     - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git" > ~/.git-credentials
