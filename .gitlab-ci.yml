@@ -12,19 +12,8 @@ build:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
   script:
-    - echo "Current directory:$(pwd)"
-    - echo "Contents of the directory:"
-    - ls -la
-    - echo "Cloning the repository..."
-    - echo "Cleaning up existing files..."
-    - find . -mindepth 1 -delete
-    - rm -rf ./*           # Удалить все файлы в текущей директории
-    - rm -rf ./.git        # Удалить папку .git, если она существует
-    - git config --global credential.helper store
-    - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8090/maksdev/shops.git" > ~/.git-credentials
-    - git clone http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8090/maksdev/shops.git .
     - echo "Building the Docker image..."
-    - docker build -t my-app .
+    - docker build -t my-shops .
   only:
     - master
 
