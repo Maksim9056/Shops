@@ -4,21 +4,19 @@ stages:
 build:
   stage: build
   image: docker:latest
-  services:
-    - name: docker:dind
-      command: ["--privileged"]
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
   script:
+    - apk add --no-cache --virtual .build-deps curl
+    - curl -L https://github.com/PowerShell/PowerShell/releases/download/v7.3.6/powershell-7.3.6-linux-alpine-x64.tar.gz -o /tmp/powershell.tar.gz
+    - mkdir -p /opt/microsoft/powershell/7
+    - tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
+    - ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
+    - pwsh --version  # Проверка установки PowerShell
     - echo "Cloning the repository..."
     - git config --global credential.helper store
     - echo "http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git" > ~/.git-credentials
     - git clone http://${GITLAB_USER}:${GITLAB_PASSWORD}@192.168.1.204:8080/maksdev/shops.git .
-    - echo "Building the Docker image..."
-    - docker build -t my-app .
-  only:
-    - master
+    - docker build -t my-shop .
+
 test:
   stage: test
   script:
