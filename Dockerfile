@@ -4,6 +4,7 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+RUN dotnet --info
 # Копируем все файлы из текущей директории репозитория в папку /app
 COPY . /app/
 
