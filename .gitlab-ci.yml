@@ -9,6 +9,7 @@ build:
     DOCKER_HOST: tcp://localhost:2375
     DOCKER_TLS_CERTDIR: ""
   script:
+    - docker info
     - echo "Building the Docker image..."
     - docker build -t my-shops .
   only:
