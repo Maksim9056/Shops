@@ -6,8 +6,11 @@ build:
   stage: build
   image: docker:latest
   variables:
-    DOCKER_HOST: tcp://localhost:2375
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://host.docker.internal:2375
+    DOCKER_DRIVER: overlay2
+   
+  services:
+    - docker:dind
   script:
     - docker info
     - echo "Building the Docker image..."
