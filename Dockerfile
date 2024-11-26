@@ -9,7 +9,7 @@ RUN dotnet --info
 # Копируем все файлы из текущей директории репозитория в папку /app
 COPY . /app/
 
-FROM build AS publish
+
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./Shops.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
