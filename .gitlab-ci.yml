@@ -9,7 +9,7 @@ variables:
   REGISTRY_URL: "192.168.1.204:5000" # Укажите адрес вашего Docker Registry
   IMAGE_NAME: "${REGISTRY_URL}/my-shops"
   IMAGE_Del: "my-shops"
-  REGISTRY_URL_V2: http://localhost:5000
+  REGISTRY_URL_V2: http://192.168.1.204:5000
 build:
   stage: build
   image: docker:latest
@@ -91,7 +91,7 @@ publish_category:
     - docker push ${IMAGE_NAME}category
   only:
     - master
-    
+
 test2_category:
   stage: test
   image: docker:latest
