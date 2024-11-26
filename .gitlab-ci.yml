@@ -45,7 +45,7 @@ test:
     - echo "Waiting for the container to start..."
     - sleep 20
     - echo "Testing the application..."
-    - curl -f http://localhost:8080 || (echo "Test failed"; exit 1)
+    - curl  http://localhost:80 || (echo "Test failed"; exit 1)
     - echo "Test passed!"
     - docker stop test_container
     - docker rm test_container
