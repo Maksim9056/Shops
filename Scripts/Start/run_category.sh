@@ -10,13 +10,17 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 # Проверяем и заменяем целевую строку
-TARGET_STRING="Host=localhost;Port=5432;Database=CloudStorage;Username=postgres;Password=1"
+TARGET_STRING="Host=localhost;Port=5432;Database=${PG_DATABASE};Username=postgres;Password=1"
 if grep -q "$TARGET_STRING" "$CONFIG_FILE"; then
     echo "Целевая строка найдена. Выполняется замена на переменные окружения."
-    sed -i "s#$TARGET_STRING#Host=$PG_HOST;Port=$PG_PORT;Database=$PG_DATABASE;Username=$PG_USERNAME;Password=$PG_USERPASSWORD#g" "$CONFIG_FILE"
+    sed -i "s#${TARGET_STRING}#Host=${PG_HOST};Port=${PG_PORT};Database=${PG_DATABASE};Username=${PG_USERNAME};Password=${PG_USERPASSWORD}#g" "$CONFIG_FILE"
 else
     echo "Целевая строка не найдена. Замена не требуется."
 fi
+
+# Проверка результата замены
+echo "Содержимое $CONFIG_FILE после замены:"
+cat "$CONFIG_FILE"
 
 # Запускаем приложение
 dotnet /app/Store_Category.dll --urls http://0.0.0.0:$PORT_WEB &
