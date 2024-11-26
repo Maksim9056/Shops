@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   category-service:
-    image: my-shopscategory:latest
+    image: 192.168.1.204:5000/my-shopscategory:latest
     container_name: category-service
     ports:
       - "8080:80"
