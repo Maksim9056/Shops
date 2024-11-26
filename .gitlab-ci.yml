@@ -39,7 +39,7 @@ test:
     - docker:dind
   script:
     - echo "Docker run image"
-    - docker run -p 8080:80 --name test_container $IMAGE_NAME
+    - docker run -d -p 8080:80 --name test_container $IMAGE_NAME
     - echo "Waiting for the container to start..."
     - sleep 10
     - echo "Testing the application..."
