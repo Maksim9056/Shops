@@ -41,9 +41,9 @@ test:
     - echo "Docker run image"
     - docker run -d -p 8080:80 --name test_container $IMAGE_NAME
     - echo "Waiting for the container to start..."
-    - sleep 10
+    - sleep 20
     - echo "Testing the application..."
-    - curl -f http://localhost:8080 || (echo "Test failed"; exit 1)
+    - curl -f http://localhost:80 || (echo "Test failed"; exit 1)
     - echo "Test passed!"
     - docker stop test_container
     - docker rm test_container
