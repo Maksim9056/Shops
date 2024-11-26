@@ -5,15 +5,18 @@ CONFIG_FILE="/app/appsettings.json"
 # Проверяем наличие файла конфигурации
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Файл конфигурации $CONFIG_FILE не найден!"
-    ls -la /app/publish
+    ls -la /app
     exit 1
 fi
 
 # Проверяем и заменяем целевую строку
-TARGET_STRING="Host=localhost;Port=5432;Database=${PG_DATABASE};Username=postgres;Password=1"
+TARGET_STRING="Host=localhost;Database=StoreShop;Username=postgres;Password=1"
+REPLACEMENT_STRING="Host=${PG_HOST};Database=${PG_DATABASE};Username=${PG_USERNAME};Password=${PG_USERPASSWORD}"
+
+# Проверяем, содержит ли файл целевую строку
 if grep -q "$TARGET_STRING" "$CONFIG_FILE"; then
-    echo "Целевая строка найдена. Выполняется замена на переменные окружения."
-    sed -i "s#${TARGET_STRING}#Host=${PG_HOST};Port=${PG_PORT};Database=${PG_DATABASE};Username=${PG_USERNAME};Password=${PG_USERPASSWORD}#g" "$CONFIG_FILE"
+    echo "Целевая строка найдена. Выполняется замена на актуальные параметры."
+    sed -i "s#${TARGET_STRING}#${REPLACEMENT_STRING}#g" "$CONFIG_FILE"
 else
     echo "Целевая строка не найдена. Замена не требуется."
 fi
