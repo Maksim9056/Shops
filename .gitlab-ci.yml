@@ -38,6 +38,8 @@ test:
   services:
     - docker:dind
   script:
+    - echo "Installing curl..."
+    - apk add --no-cache curl
     - echo "Docker run image"
     - docker run -d -p 8080:80 --name test_container $IMAGE_NAME
     - echo "Waiting for the container to start..."
