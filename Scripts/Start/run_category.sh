@@ -10,7 +10,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 
 # Проверяем и заменяем целевую строку
-TARGET_STRING="Host=localhost;Port=5432;Database=${PG_DATABASE};Username=postgres;Password=1"
+TARGET_STRING="Host=${PG_HOST};Port=${PG_HOST};Database=${PG_DATABASE};Username=${PG_USERNAME};Password=${PG_USERPASSWORD}"
 if grep -q "$TARGET_STRING" "$CONFIG_FILE"; then
     echo "Целевая строка найдена. Выполняется замена на переменные окружения."
     sed -i "s#${TARGET_STRING}#Host=${PG_HOST};Port=${PG_PORT};Database=${PG_DATABASE};Username=${PG_USERNAME};Password=${PG_USERPASSWORD}#g" "$CONFIG_FILE"
