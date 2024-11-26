@@ -88,8 +88,8 @@ test2_category:
     - docker exec category-service curl  http://localhost:80 || (echo "Test failed"; exit 1)
     - echo "Test passed!"
     - docker-compose -f dockercategor.yml down
-    
-
-
   only:
     - master
+
+
+
