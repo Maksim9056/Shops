@@ -32,6 +32,7 @@ fi
 
 echo "=== Содержимое $CONFIG_FILE ПОСЛЕ замены ==="
 cat "$CONFIG_FILE"
+sleep 20
 
 # Запускаем приложение
 dotnet /app/Store_Category.dll --urls http://0.0.0.0:$PORT_WEB &
