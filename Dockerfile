@@ -1,5 +1,5 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+#FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
@@ -12,7 +12,7 @@ COPY . /app/
 # Проверяем содержимое папки /app после копирования
 RUN ls -la /app
 
-FROM build AS publish
+FROM base AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./Shops/Shops.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 #RUN dotnet restore 
