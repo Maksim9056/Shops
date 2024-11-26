@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG_FILE="/app/publish/appsettings.json"
+CONFIG_FILE="/app/appsettings.json"
 
 # Проверяем наличие файла конфигурации
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -19,7 +19,7 @@ else
 fi
 
 # Запускаем приложение
-dotnet /app/publish/Shops.dll --urls http://0.0.0.0:$PORT_WEB &
+dotnet /app/Shops.dll --urls http://0.0.0.0:$PORT_WEB &
 
 # Оставляем контейнер в режиме ожидания
 tail -f /dev/null

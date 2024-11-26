@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 #FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
-EXPOSE 8080
+EXPOSE 80
 EXPOSE 8081
 
 RUN dotnet --info
@@ -37,7 +37,8 @@ RUN rm -rf /app/Dockerfile \
            /app/Shops.sln \
            /app/Store_Orders.csproj \
            /app/README.md
-           
+# Копируем содержимое папки publish в корень /app
+RUN cp -r /app/publish/* /app/ && rm -rf /app/publish    
 RUN chmod +x /app/Scripts/Start/run.sh
 
 # Устанавливаем точку входа
