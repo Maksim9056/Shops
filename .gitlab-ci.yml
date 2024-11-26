@@ -8,7 +8,8 @@ variables:
   DOCKER_DRIVER: overlay2
   REGISTRY_URL: "192.168.1.204:5000" # Укажите адрес вашего Docker Registry
   IMAGE_NAME: "${REGISTRY_URL}/my-shops"
-
+  IMAGE_Del: "my-shops"
+  REGISTRY_URL_V2: http://localhost:5000
 build:
   stage: build
   image: docker:latest
@@ -68,8 +69,25 @@ publish_category:
   services:
     - docker:dind
   script:
-    - echo "Pushing the Docker image to the registry..."
+  # Удаление старого образа, если он существует
+    - echo "Checking and deleting the existing Docker image..."
+    - |
+      DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+        ${REGISTRY_URL_V2}/v2/${IMAGE_Del}category/manifests/latest | \
+        grep Docker-Content-Digest | awk '{print $2}' | tr -d '\r')
+      
+      if [ -n "$DIGEST" ]; then
+        echo "Old image found. Deleting $IMAGE_NAME:category with digest $DIGEST..."
+        curl -s -X DELETE ${REGISTRY_URL_V2}v2/${IMAGE_Del}category/manifests/$DIGEST
+        echo "Old image deleted successfully."
+      else
+        echo "No existing image found. Skipping deletion."
+      fi
+    # Публикация нового образа
+    - echo "Building and pushing the new Docker image to the registry..."
+    - docker build -t ${IMAGE_NAME}category .
     - docker push ${IMAGE_NAME}category
+
   only:
     - master
 test2_category:
