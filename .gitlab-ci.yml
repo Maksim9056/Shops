@@ -69,22 +69,6 @@ publish_category:
   services:
     - docker:dind
   script:
-    # Установим curl
-    - apk add --no-cache curl
-    # Удаление старого образа, если он существует
-    - echo "Checking and deleting the existing Docker image..."
-    - |
-      DIGEST=$(curl -sI -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
-        ${REGISTRY_URL_V2}/v2/${IMAGE_Del}category/manifests/latest | \
-        grep Docker-Content-Digest | awk '{print $2}' | tr -d '\r')
-      
-      if [ -n "$DIGEST" ]; then
-        echo "Old image found. Deleting ${IMAGE_Del}category with digest $DIGEST..."
-        curl -s -X DELETE ${REGISTRY_URL_V2}/v2/${IMAGE_Del}category/manifests/$DIGEST
-        echo "Old image deleted successfully."
-      else
-        echo "No existing image found. Skipping deletion."
-      fi
     # Публикация нового образа
     - echo "Building and pushing the new Docker image to the registry..."
     - docker build -t ${IMAGE_NAME}category .
