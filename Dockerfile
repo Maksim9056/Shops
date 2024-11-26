@@ -9,15 +9,19 @@ RUN dotnet --info
 # Копируем все файлы из текущей директории репозитория в папку /app
 COPY . /app/
 
+RUN ls -la /app
 
 ARG BUILD_CONFIGURATION=Release
+
+# Восстанавливаем зависимости
+RUN dotnet restore "./Shops/Shops.csproj"
+
+# Сборка проекта
 RUN dotnet publish "./Shops/Shops.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 RUN cp /app/Shops/appsettings.json /app/publish/appsettings.json
 # Проверяем содержимое папки /app после копирования
-RUN ls -la /app
 
-RUN ls -la /app
 RUN ls -la /app/publish
 
 # Debug the presence of `appsettings.json`
