@@ -14,7 +14,7 @@ RUN ls -la /app
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./app/Shops.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Shops.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 #RUN dotnet restore 
 #RUN dotnet build -c Release
 #RUN dotnet publish -c Release -o /app/publish
