@@ -32,7 +32,7 @@ publish:
   only:
     - master
 
-test:
+test1:
   stage: test
   image: docker:latest
   services:
@@ -49,5 +49,45 @@ test:
     - echo "Test passed!"
     - docker stop test_container
     - docker rm test_container
+  only:
+    - master
+build_category:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Building the Docker image..."
+    - docker build -t ${IMAGE_NAME}category -f Dockerfile_Category .
+    - docker tag ${IMAGE_NAME}category ${IMAGE_NAME}category:latest
+  only:
+    - master
+publish_category:
+  stage: publish
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Pushing the Docker image to the registry..."
+    - docker push ${IMAGE_NAME}category
+  only:
+    - master
+test2_category:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Installing curl..."
+    - apk add --no-cache curl
+    - echo "Docker run image"
+    - docker run -d -p 8080:80 --name test_container_category ${IMAGE_NAME}category
+    - echo "Waiting for the container to start..."
+    - sleep 20
+    - echo "Testing the application..."
+    - docker exec test_container_category curl  http://localhost:80 || (echo "Test failed"; exit 1)
+    - echo "Test passed!"
+    - docker stop test_container_category
+    - docker rm test_container_category
   only:
     - master
