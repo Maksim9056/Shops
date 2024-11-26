@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  category-service:
+    image: my-shopscategory:latest
+    container_name: category-service
+    ports:
+      - "8080:80"
+    env_file:
+      - .env  # Подключаем .env файл
+    depends_on:
+      - postgres  # Указываем, что сервис зависит от PostgreSQL
+    networks:
+      - app_network  # Подключаем к общей сети
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    env_file:
+      - .env  # Подключаем .env файл
+    environment:
+      POSTGRES_USER: ${PG_USERNAME}
+      POSTGRES_PASSWORD: ${PG_USERPASSWORD}
+      POSTGRES_DB: ${PG_DATABASE}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app_network  # Подключаем к общей сети
+
+networks:
+  app_network:  # Объявляем сеть
+    driver: bridge
+
+volumes:
+  postgres-data:
