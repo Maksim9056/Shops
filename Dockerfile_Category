@@ -19,7 +19,7 @@ RUN dotnet restore "./Shops/Shops.csproj"
 # Сборка проекта
 RUN dotnet publish "./Store_Category/Store_Category.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-RUN cp /app/Shops/appsettings.json /app/publish/appsettings.json
+RUN cp /app/Store_Category/appsettings.json /app/publish/appsettings.json
 # Проверяем содержимое папки /app после копирования
 
 RUN ls -la /app/publish
