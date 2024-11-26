@@ -39,6 +39,13 @@ test:
     - docker:dind
   script:
     - echo "Docker run image"
-    - docker run -p 8080:80  $IMAGE_NAME
+    - docker run -p 8080:80 --name test_container $IMAGE_NAME
+    - echo "Waiting for the container to start..."
+    - sleep 10
+    - echo "Testing the application..."
+    - curl -f http://localhost:8080 || (echo "Test failed"; exit 1)
+    - echo "Test passed!"
+    - docker stop test_container
+    - docker rm test_container
   only:
     - master
