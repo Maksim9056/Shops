@@ -1,6 +1,7 @@
 stages:
   - build
   - publish
+  - test
 
 variables:
   DOCKER_HOST: tcp://host.docker.internal:2375
@@ -28,5 +29,16 @@ publish:
   script:
     - echo "Pushing the Docker image to the registry..."
     - docker push $IMAGE_NAME
+  only:
+    - master
+
+test:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Docker run image"
+    - docker run -p 8080:80  $IMAGE_NAME
   only:
     - master
