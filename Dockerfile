@@ -8,21 +8,36 @@ RUN dotnet --info
 
 # Копируем все файлы из текущей директории репозитория в папку /app
 COPY . /app/
-
+RUN cp /app/Shops/appsettings.json /app/publish/appsettings.json
 # Проверяем содержимое папки /app после копирования
 RUN ls -la /app
 
-FROM base AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./Shops/Shops.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-#RUN dotnet restore 
-#RUN dotnet build -c Release
-#RUN dotnet publish -c Release -o /app/publish
-# Проверяем содержимое папки /app после копирования
 RUN ls -la /app
 RUN ls -la /app/publish
 
+# Debug the presence of `appsettings.json`
+RUN ls -la /app/publish/appsettings.json
 # Устанавливаем права на выполнение для скрипта запуска
+
+# Удаляем все лишние файлы, оставляем только `publish` и `Scripts`
+RUN rm -rf /app/Dockerfile \
+           /app/ShopClassLibrary \
+           /app/Shops \
+           /app/Shops.Client \
+           /app/Shops_Gateway \
+           /app/StoreImage \
+           /app/Store_Category \
+           /app/Store_Orders \
+           /app/Store_Products \
+           /app/Store_Projects \
+           /app/Store_Status \
+           /app/Store_Tasks \
+           /app/Store_Users \
+           /app/Story_Test \
+           /app/Shops.sln \
+           /app/Store_Orders.csproj \
+           /app/README.md
+           
 RUN chmod +x /app/Scripts/Start/run.sh
 
 # Устанавливаем точку входа
