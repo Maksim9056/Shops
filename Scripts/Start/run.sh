@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Путь к файлу конфигурации
-CONFIG_FILE="/app/appsettings.json"
+CONFIG_FILE="/app/publish/appsettings.json"
 
 # Ожидаемая строка для поиска
 TARGET_STRING="Host=localhost;Port=5432;Database=CloudStorage;Username=postgres;Password=1"
@@ -15,7 +15,7 @@ else
 fi
 
 # Запускаем веб-приложение
-dotnet /app/Shops.dll --urls http://0.0.0.0:$PORT_WEB &
+dotnet  /app/publish/Shops.dll --urls http://0.0.0.0:$PORT_WEB &
 
 # Оставляем контейнер в режиме ожидания
 tail -f /dev/null
