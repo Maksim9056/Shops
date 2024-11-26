@@ -20,6 +20,7 @@ RUN dotnet publish "./Shops/Shops.csproj" -c $BUILD_CONFIGURATION -o /app/publis
 #RUN dotnet publish -c Release -o /app/publish
 # Проверяем содержимое папки /app после копирования
 RUN ls -la /app
+RUN ls -la /app/publish
 
 # Устанавливаем права на выполнение для скрипта запуска
 RUN chmod +x /app/Scripts/Start/run.sh
