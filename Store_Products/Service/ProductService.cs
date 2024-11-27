@@ -29,8 +29,8 @@ namespace Store_Products.Service
 
             Parallel.ForEach(products, product =>
             {
-                product.Id_ProductDataImage.OriginalImageData = new byte[0];
-                product.Category_Id.Image_Category.OriginalImageData = new byte[0];
+                product.Id_ProductDataImage.OriginalImageData = Array.Empty<byte>(); ;
+                product.Category_Id.Image_Category.OriginalImageData = Array.Empty<byte>();
             });
 
             return products;
@@ -54,10 +54,10 @@ namespace Store_Products.Service
                 .Where(u => u.Category_Id.Id == categoryId)
                 .ToListAsync();
 
-            Parallel.ForEach(products, product =>
+            Parallel.ForEach(products, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, product =>
             {
-                product.Id_ProductDataImage.OriginalImageData = new byte[0];
-                product.Category_Id.Image_Category.OriginalImageData = new byte[0];
+                product.Id_ProductDataImage.OriginalImageData = Array.Empty<byte>();
+                product.Category_Id.Image_Category.OriginalImageData = Array.Empty<byte>();
             });
 
             // Кэшируем результат для этой категории
@@ -89,16 +89,17 @@ namespace Store_Products.Service
                 .Where(p => p.Name_Product.Contains(query))
                 .ToListAsync();
 
-            Parallel.ForEach(products, product =>
+            Parallel.ForEach(products, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, product =>
             {
-                product.Id_ProductDataImage.OriginalImageData = new byte[0];
-                product.Category_Id.Image_Category.OriginalImageData = new byte[0];
+                product.Id_ProductDataImage.OriginalImageData = Array.Empty<byte>();
+                product.Category_Id.Image_Category.OriginalImageData = Array.Empty<byte>();
             });
 
             // Кэшируем результат поиска
             await CacheListAsync(cacheKey, products, TimeSpan.FromMinutes(10));
 
             return products;
+
         }
 
         public async Task<Product> GetProductByIdAsync(long id)

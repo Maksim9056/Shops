@@ -19,11 +19,11 @@ namespace Store_Products
             builder.Services.AddSwaggerGen();
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<ProductService>();
-            builder.Services.AddScoped<ProductConsumer>();
-            builder.Services.AddScoped<ProductProducer>();
-            // Регистрация служб Kafka как Singleton
-            builder.Services.AddSingleton<ProductProducer>();
-            builder.Services.AddSingleton<ProductConsumer>();
+            //builder.Services.AddScoped<ProductConsumer>();
+            //builder.Services.AddScoped<ProductProducer>();
+            //// Регистрация служб Kafka как Singleton
+            //builder.Services.AddSingleton<ProductProducer>();
+            //builder.Services.AddSingleton<ProductConsumer>();
 
             // Добавление кэширования, если оно требуется
             builder.Services.AddMemoryCache();
