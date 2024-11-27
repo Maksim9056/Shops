@@ -11,7 +11,7 @@ using static OpenQA.Selenium.BiDi.Modules.Script.RealmInfo;
 namespace Story_Test
 {
      public class User_cart
-    {
+     {
         HttpClient client;
 
         [SetUp]
