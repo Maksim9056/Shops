@@ -1,4 +1,4 @@
-@page "/users/{userId}/cartes/add"
+@page "/users/{UserId:long}/cartes/add"
 @using Shops.Client.Service
 @inject CarteService CarteService
 @inject NavigationManager NavigationManager
@@ -36,6 +36,6 @@
     private async Task HandleSubmit()
     {
         await CarteService.AddCarteAsync(NewCarte, UserId);
-        NavigationManager.NavigateTo($"/users/{UserId}/cartes");
+        NavigationManager.NavigateTo($"/users/cartes");
     }
-    }
+  }

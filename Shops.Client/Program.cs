@@ -46,7 +46,9 @@ namespace Shops.Client
             // Регистрируем ваши сервисы
             builder.Services.AddScoped<OrderService>();
             builder.Services.AddScoped<JWT_Decode>();
+            builder.Services.AddScoped<CarteService>();
 
+            
             builder.Services.AddScoped<ImageService>();
             builder.Services.AddScoped<ProductService>(); 
             builder.Services.AddScoped<UrlService>(); 

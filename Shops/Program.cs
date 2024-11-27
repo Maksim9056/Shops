@@ -33,6 +33,8 @@ namespace Shops
             builder.Services.AddScoped<ImageService>();
             builder.Services.AddScoped<OrderService>();
             builder.Services.AddScoped<JWT_Decode>();
+            builder.Services.AddScoped<CarteService>();
+
             builder.Services.AddBlazoredLocalStorage();
 
 

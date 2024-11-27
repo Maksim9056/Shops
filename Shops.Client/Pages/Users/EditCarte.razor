@@ -1,4 +1,4 @@
-@page "/users/{userId}/cartes/edit/{carteId}"
+@page "/users/{userId:long}/cartes/edit/{carteId:long}"
 @using Shops.Client.Service
 @inject CarteService CarteService
 @inject NavigationManager NavigationManager
@@ -36,12 +36,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        EditableCarte = await CarteService.GetCarteByIdAsync(CarteId);
+        EditableCarte = await CarteService.GetCarteByIdAsync(UserId, CarteId);
     }
 
     private async Task HandleSubmit()
     {
-        await CarteService.UpdateCarteAsync(EditableCarte);
-        NavigationManager.NavigateTo($"/users/{UserId}/cartes");
+        await CarteService.UpdateCarteAsync(UserId,EditableCarte);
+        NavigationManager.NavigateTo($"/users/cartes");
     }
     }

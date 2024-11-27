@@ -23,25 +23,51 @@ namespace Store_Users.Controllers
             _carteService = carteService;
         }
 
+        // Получение всех карт пользователя
         [HttpGet]
-        public async Task<IActionResult> GetCartes(long userId) =>
-            Ok(await _carteService.GetCartesByUserIdAsync(userId));
+        public async Task<IActionResult> GetCartes(long userId)
+        {
+            var cartes = await _carteService.GetCartesByUserIdAsync(userId);
+            if (cartes == null || !cartes.Any())
+            {
+                return NotFound($"Карт у пользователя с Id {userId} не найдено.");
+            }
+            return Ok(cartes);
+        }
 
+        // Получение одной карты пользователя
+        [HttpGet("{carteId}")]
+        public async Task<IActionResult> GetCarteById(long userId, long carteId)
+        {
+            var carte = await _carteService.GetCarteByUserAsync(userId, carteId);
+            if (carte == null)
+            {
+                return NotFound($"Карта с Id {carteId} у пользователя {userId} не найдена.");
+            }
+            return Ok(carte);
+        }
+
+        // Добавление карты пользователю
         [HttpPost]
         public async Task<IActionResult> AddCarte(long userId, [FromBody] Сarte carte)
         {
             await _carteService.AddCarteAsync(carte, userId);
-            return CreatedAtAction(nameof(GetCartes), new { userId }, carte);
+            return CreatedAtAction(nameof(GetCarteById), new { userId, carteId = carte.Id }, carte);
         }
 
+        // Обновление карты пользователя
         [HttpPut("{carteId}")]
         public async Task<IActionResult> UpdateCarte(long carteId, [FromBody] Сarte carte)
         {
-            if (carte.Id != carteId) return BadRequest();
+            if (carte.Id != carteId)
+            {
+                return BadRequest("Id карты не совпадает.");
+            }
             await _carteService.UpdateCarteAsync(carte);
             return NoContent();
         }
 
+        // Удаление карты пользователя
         [HttpDelete("{carteId}")]
         public async Task<IActionResult> DeleteCarte(long carteId)
         {
@@ -49,4 +75,6 @@ namespace Store_Users.Controllers
             return NoContent();
         }
     }
+
+
 }

@@ -1,4 +1,8 @@
-@page "/users/{userId}/cartes"
+@page "/users/cartes"
+@using ShopClassLibrary.Service
+@using Shops.Client.Pages.Admin.Category
+@using Shops.Client.Pages.Admin.Product
+@using Shops.Client.Pages.Orders
 @using Shops.Client.Service
 @inject CarteService CarteService
 @inject NavigationManager NavigationManager
@@ -9,8 +13,20 @@
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
 @inject UrlService UrlService
-
+@inject IConfiguration Configuration
+@inject UrlService UrlService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
+@inject ProductService ProductService
+@inject CategoryService CategoryService
+@inject OrderService OrderService
+@inject JWT_Decode JWT_Decode
 <h3>Счета</h3>
+@if (!string.IsNullOrEmpty(NotificationMessage))
+{
+    <div class="alert @NotificationClass">@NotificationMessage</div>
+}
 <button @onclick="AddCarte">Добавить счет</button>
 
 <table class="table">
@@ -39,14 +55,62 @@
 </table>
 
 @code {
-    [Parameter]
-    public long UserId { get; set; }
 
+    public long UserId { get; set; }
+    private string jwt_token { get; set; }
+    private string NotificationMessage { get; set; }
+    private string NotificationClass { get; set; }
     private List<Сarte> Сartes = new();
+
+    private async Task ShowNotification(string message, string alertClass)
+    {
+        NotificationMessage = message;
+        NotificationClass = alertClass;
+        await Task.Delay(5000); // Уведомление отображается 5 секунд
+        NotificationMessage = null; // Убираем уведомление
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Инициализация
+            jwt_token = await localStorage.GetItemAsync<string>("jwt_token");
+            Console.WriteLine("JWT Token: " + jwt_token);
+            if (!string.IsNullOrEmpty(jwt_token))
+            {
+                var user = JWT_Decode.Check_jwt_token(jwt_token);
+
+                if (user.Email == null)
+                {
+                    await ShowNotification("Ваш токен истёк. Пожалуйста, войдите снова.", "alert-danger");
+
+                    await localStorage.RemoveItemAsync("jwt_token");
+
+                }
+                else
+                {
+
+                    UserId = user.Id;
+                    Console.WriteLine("JWT Token: " + jwt_token);
+                    Console.WriteLine("JWT токен действителен");
+                    Сartes = await CarteService.GetCartesAsync(UserId);
+
+                }
+            }
+            else
+            {
+                await ShowNotification("Токен отсутствует. Пожалуйста, войдите снова.", "alert-warning");
+
+            }
+            // Загрузка данных
+            StateHasChanged();
+        }
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
-        Сartes = await CarteService.GetCartesAsync(UserId);
     }
 
     private async Task AddCarte()
@@ -61,7 +125,13 @@
 
     private async Task DeleteCarte(long carteId)
     {
-        await CarteService.DeleteCarteAsync(carteId);
+        if (string.IsNullOrEmpty(jwt_token))
+        {
+            await ShowNotification("Не удалось удалить счёт. Сначала войдите в систему.", "alert-danger");
+            return;
+        }
+
+        await CarteService.DeleteCarteAsync(UserId, carteId);
         Сartes = await CarteService.GetCartesAsync(UserId);
     }
 }

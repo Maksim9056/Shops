@@ -97,5 +97,17 @@ namespace Store_Users.Service
             }
         }
 
+        public async Task<Ñarte> GetCarteByUserAsync(long userId, long carteId)
+        {
+            var user = await _context.Users.Include(u => u.Ñartes).FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return null;
+            }
+
+            var carte = user.Ñartes.FirstOrDefault(c => c.Id == carteId);
+            return carte;
+        }
+
     }
 }
