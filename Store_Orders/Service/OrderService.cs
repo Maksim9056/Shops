@@ -67,18 +67,18 @@ namespace Store_Orders.Service
             // Рассчитываем общую стоимость заказов
             var totalAmount = SUMM;
 
-            // Проверяем, достаточно ли средств на счету
-            if (user.Money_Account < totalAmount)
-            {
-                return "Недостаточно средств для оплаты заказов.";
-            }
+            //// Проверяем, достаточно ли средств на счету
+            //if (user.Money_Account < totalAmount)
+            //{
+            //    return "Недостаточно средств для оплаты заказов.";
+            //}
 
-            // Списываем сумму со счета пользователя и обновляем статус заказов
-            user.Money_Account -= totalAmount;
-            foreach (var orders in ordersToPay)
-            {
-                orders.Status = await _context.Status.FirstOrDefaultAsync(s => s.Description == "Заказ оплачен!");
-            }
+            //// Списываем сумму со счета пользователя и обновляем статус заказов
+            //user.Money_Account -= totalAmount;
+            //foreach (var orders in ordersToPay)
+            //{
+            //    orders.Status = await _context.Status.FirstOrDefaultAsync(s => s.Description == "Заказ оплачен!");
+            //}
 
             // Сохраняем изменения
             await _context.SaveChangesAsync();

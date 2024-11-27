@@ -1,0 +1,41 @@
+@page "/users/{userId}/cartes/add"
+@using Shops.Client.Service
+@inject CarteService CarteService
+@inject NavigationManager NavigationManager
+@using ShopClassLibrary.ModelShop
+@using System.Net.Http.Headers
+@rendermode InteractiveServer
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@inject UrlService UrlService
+
+<h3>Добавить счет</h3>
+
+<EditForm Model="NewCarte" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Банковский счет</label>
+        <InputText @bind-Value="NewCarte.Bank_Carte" />
+    </div>
+    <div>
+        <label>Сумма</label>
+        <InputNumber @bind-Value="NewCarte.Money_Account" />
+    </div>
+    <button type="submit">Добавить</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public long UserId { get; set; }
+
+    private Сarte NewCarte = new();
+
+    private async Task HandleSubmit()
+    {
+        await CarteService.AddCarteAsync(NewCarte, UserId);
+        NavigationManager.NavigateTo($"/users/{UserId}/cartes");
+    }
+    }

@@ -1,0 +1,47 @@
+@page "/users/{userId}/cartes/edit/{carteId}"
+@using Shops.Client.Service
+@inject CarteService CarteService
+@inject NavigationManager NavigationManager
+@using ShopClassLibrary.ModelShop
+@using System.Net.Http.Headers
+@rendermode InteractiveServer
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@inject UrlService UrlService
+<h3>Редактировать счет</h3>
+
+<EditForm Model="EditableCarte" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Банковский счет</label>
+        <InputText @bind-Value="EditableCarte.Bank_Carte" />
+    </div>
+    <div>
+        <label>Сумма</label>
+        <InputNumber @bind-Value="EditableCarte.Money_Account" />
+    </div>
+    <button type="submit">Сохранить</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public long UserId { get; set; }
+    [Parameter]
+    public long CarteId { get; set; }
+
+    private Сarte EditableCarte = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        EditableCarte = await CarteService.GetCarteByIdAsync(CarteId);
+    }
+
+    private async Task HandleSubmit()
+    {
+        await CarteService.UpdateCarteAsync(EditableCarte);
+        NavigationManager.NavigateTo($"/users/{UserId}/cartes");
+    }
+    }

@@ -140,7 +140,7 @@
             User.Orders = new List<Order>();
             User.Id = 0;
             User.PasswordHash = "";
-
+            User.Сartes = new List<Сarte>();
             // client.BaseAddress = new Uri(UserService );
             var createuser = await client.PostAsJsonAsync(UserService + "/UserConroller", User);
             var user =   await  createuser.RequestMessage.Content.ReadAsStringAsync();

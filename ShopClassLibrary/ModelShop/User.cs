@@ -1,4 +1,5 @@
-﻿namespace ShopClassLibrary.ModelShop
+﻿
+namespace ShopClassLibrary.ModelShop
 {
     public class User
     {
@@ -11,10 +12,10 @@
         public string Password { get; set; }
         public string PasswordHash { get; set; }
         public DateTime CreatedDate { get; set; } // Date the user account was created
-        public long Money_Account { get; set; }
         public string PhoneNumber { get; set; }
         public bool IsBlocked { get; set; } // Признак блокировки пользователя
         public Image  Id_User_Image { get; set; }
+        public List<Сarte> Сartes { get; set; } = new List<Сarte>();
         public IEnumerable<Order> Orders { get; set; } = new List<Order>();
         public Status Status { get; set; } // Статус связи пользователя и прав (например, "Активна", "Отменена")
     }

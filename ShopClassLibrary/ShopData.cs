@@ -27,7 +27,7 @@ namespace ShopClassLibrary
         public DbSet<Status> Status { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Category> Category { get; set; }
-        //public DbSet<Product_category> Product_category { get; set; }
+        public DbSet<Сarte> Сarte { get; set; }
 
         public DbSet<Image> Image { get; set; }
         public DbSet<ImageCopy> ImageCopy { get; set; }

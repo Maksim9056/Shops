@@ -1,0 +1,67 @@
+@page "/users/{userId}/cartes"
+@using Shops.Client.Service
+@inject CarteService CarteService
+@inject NavigationManager NavigationManager
+@using ShopClassLibrary.ModelShop
+@using System.Net.Http.Headers
+@rendermode InteractiveServer
+@inject HttpClient client
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+@inject UrlService UrlService
+
+<h3>Счета</h3>
+<button @onclick="AddCarte">Добавить счет</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Банковский счет</th>
+            <th>Сумма</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var carte in Сartes)
+        {
+            <tr>
+                <td>@carte.Id</td>
+                <td>@carte.Bank_Carte</td>
+                <td>@carte.Money_Account</td>
+                <td>
+                    <button @onclick="() => EditCarte(carte.Id)">Редактировать</button>
+                    <button @onclick="() => DeleteCarte(carte.Id)">Удалить</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public long UserId { get; set; }
+
+    private List<Сarte> Сartes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Сartes = await CarteService.GetCartesAsync(UserId);
+    }
+
+    private async Task AddCarte()
+    {
+        NavigationManager.NavigateTo($"/users/{UserId}/cartes/add");
+    }
+
+    private async Task EditCarte(long carteId)
+    {
+        NavigationManager.NavigateTo($"/users/{UserId}/cartes/edit/{carteId}");
+    }
+
+    private async Task DeleteCarte(long carteId)
+    {
+        await CarteService.DeleteCarteAsync(carteId);
+        Сartes = await CarteService.GetCartesAsync(UserId);
+    }
+}

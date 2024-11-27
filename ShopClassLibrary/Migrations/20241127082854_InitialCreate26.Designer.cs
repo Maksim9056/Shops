@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShopClassLibrary;
@@ -11,9 +12,11 @@ using ShopClassLibrary;
 namespace ShopClassLibrary.Migrations
 {
     [DbContext(typeof(ShopData))]
-    partial class ShopDataModelSnapshot : ModelSnapshot
+    [Migration("20241127082854_InitialCreate26")]
+    partial class InitialCreate26
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,9 +111,6 @@ namespace ShopClassLibrary.Migrations
                         .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("Count_product")
-                        .HasColumnType("bigint");
 
                     b.Property<long>("Idproduct")
                         .HasColumnType("bigint");
@@ -439,6 +439,9 @@ namespace ShopClassLibrary.Migrations
 
                     b.Property<bool>("IsBlocked")
                         .HasColumnType("boolean");
+
+                    b.Property<long>("Money_Account")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Password")
                         .IsRequired()

@@ -199,6 +199,7 @@ namespace Store_Users
 
 
 
+            builder.Services.AddScoped<ICarteService, CarteService>();
 
             builder.Services.AddScoped<IUserService, UserService>();
 
