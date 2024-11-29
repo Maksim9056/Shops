@@ -15,7 +15,7 @@ namespace ShopClassLibrary.ModelShop
         //public IEnumerable<Product> Idproduct { get; set; } = new List<Product>();
         public  long Idproduct { get; set; }
 
-        public long Count_product { get; set; }
+        public long BUY_product { get; set; }
 
         public User User { get; set; }
         public Status Status { get; set; } // Статус связи пользователя и прав (например, "Активна", "Отменена")

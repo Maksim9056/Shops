@@ -20,6 +20,11 @@
 @inject OrderService OrderService
 @inject JWT_Decode JWT_Decode
 
+@if (!string.IsNullOrEmpty(NotificationMessage))
+{
+    <div class="alert @NotificationClass">@NotificationMessage</div>
+}
+
 @if (Category != null)
 {
     <h3 class="category-title">@Category.Name_Category</h3>
@@ -39,6 +44,12 @@
                 <div class="product-info">
                     <h4>@product.Name_Product</h4>
                     <p>@product.ProductsDescription</p>
+
+                    <div class="product-quantity">
+                        <button @onclick="(() => DecreaseQuantity(product))" class="btn btn-secondary">-</button>
+                        <span>@product.ProductCount</span>
+                        <button @onclick="(() => IncreaseQuantity(product))" class="btn btn-secondary">+</button>
+                    </div>
                     <p>Количество :@product.ProductCount</p>
 
                     <p class="product-price">Price: @product.ProductPrice</p>
@@ -126,6 +137,17 @@ else
     .btn:hover {
         background-color: #0056b3;
     }
+
+    .product-quantity {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .product-quantity span {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
 </style>
 
 @code {
@@ -147,6 +169,20 @@ else
     private string Store_CategoryUrl_Service;
     private string jwt_token { get; set; }
     private  string UserServiceUrl;
+    private Dictionary<long, long> productLimits = new Dictionary<long, long>();
+
+    private async Task ShowNotification(string message, string alertClass)
+    {
+        NotificationMessage = message;
+        NotificationClass = alertClass;
+        // StateHasChanged();
+
+        // await Task.Delay(5000); // Уведомление отображается 5 секунд
+        // NotificationMessage = null; // Убираем уведомление
+    }
+
+    private string NotificationMessage { get; set; }
+    private string NotificationClass { get; set; }
     protected override async Task OnInitializedAsync()
     {
         try
@@ -243,8 +279,62 @@ else
                         Console.WriteLine("JWT Token: " + jwt_token);
                         Console.WriteLine("JWT токен действителен");
                         client.DefaultRequestHeaders.Authorization = null;
+
+
+
+
                     }
                 }
+                else
+                {
+                    await ShowNotification("Токен отсутствует. Пожалуйста, войдите снова.", "alert-warning");
+
+                }
+
+
+                for (int i = 0; i < products.Count; i++)
+                {
+
+                    Category category; // Объявляем переменную category перед использованием
+
+                    if (Categories.TryGetValue(products[i].Category_Id.Id, out category))
+                    {
+
+                        products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
+
+
+                        // // Если категория найдена, обновляем её данные
+                        // Categories[products[i].Category_Id.Id].Image_Category = new Image
+                        //     {
+                        //         Id = products[i].Category_Id.Image_Category.Id,
+                        //         OriginalImageData = imageCategory.CopyImageData
+                        //     };
+
+                    }
+                    else
+                    {
+                        var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Category_Id.Image_Category.Id}");
+                        if (imageCategory != null)
+                        {
+                            products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
+                            Categories.Add(products[i].Category_Id.Id, products[i].Category_Id);
+
+
+                        }
+                    }
+
+                    var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Id_ProductDataImage.Id}");
+                    if (imageProduct != null)
+                    {
+                        products[i].Id_ProductDataImage = new Image { Id = products[i].Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
+
+                    }
+                    productLimits.Add(products[i].Id, products[i].ProductCount);
+                    products[i].ProductCount = 0;
+                }
+
+                // productLimits = products.ToDictionary(p => p.Id, p => p.ProductCount);
+
                 //     string[] parts = jwt_token.Split('.');
                 //     string header = parts[0];
                 //     string payload = parts[1];
@@ -309,45 +399,6 @@ else
 
                 // }
 
-                for (int i = 0; i < products.Count; i++)
-                {
-
-                    Category category; // Объявляем переменную category перед использованием
-
-                    if (Categories.TryGetValue(products[i].Category_Id.Id, out category))
-                    {
-
-                        products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
-
-
-                        // // Если категория найдена, обновляем её данные
-                        // Categories[products[i].Category_Id.Id].Image_Category = new Image
-                        //     {
-                        //         Id = products[i].Category_Id.Image_Category.Id,
-                        //         OriginalImageData = imageCategory.CopyImageData
-                        //     };
-
-                    }
-                    else
-                    {
-                        var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Category_Id.Image_Category.Id}");
-                        if (imageCategory != null)
-                        {
-                            products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
-                            Categories.Add(products[i].Category_Id.Id, products[i].Category_Id);
-
-
-                        }
-                    }
-
-                    var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{products[i].Id_ProductDataImage.Id}");
-                    if (imageProduct != null)
-                    {
-                        products[i].Id_ProductDataImage = new Image { Id = products[i].Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
-
-                    }
-
-                }
                 StateHasChanged();
 
             }
@@ -359,6 +410,23 @@ else
 
     }
 
+    private void IncreaseQuantity(Product product)
+    {
+        // Увеличение количества товара
+        if (productLimits.TryGetValue(product.Id, out long maxLimit) && product.ProductCount < maxLimit)
+        {
+            product.ProductCount++;
+        }
+    }
+
+    private void DecreaseQuantity(Product product)
+    {
+        // Уменьшение количества товара, если больше 0
+        if (product.ProductCount > 0)
+        {
+            product.ProductCount--;
+        }
+    }
 
     public async Task AddProductOrder(Product product)
     {
@@ -377,7 +445,7 @@ else
 
                 // product_add.Add(Convert.ToInt32(product.Id));
                 Status status = new Status() { Id = 8, Description = "", StatusName = "" };
-                Order order = new Order() { Id = 0, OrdersName = Category.Name_Category, Status = status, Idproduct = product.Id, User = user1 };
+                Order order = new Order() { Id = 0, OrdersName = Category.Name_Category, Status = status, Idproduct = product.Id, User = user1, BUY_product = product.ProductCount};
                 await OrderService.CreateOrderAsync(order);
 
                 // product_add.Remove(Convert.ToInt32(product.Id));

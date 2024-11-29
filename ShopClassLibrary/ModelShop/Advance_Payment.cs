@@ -8,8 +8,13 @@ namespace ShopClassLibrary.ModelShop
 {
     public class Advance_Payment
     {
-        public HashSet<long> SelectedOrderIds { get; set; } = new HashSet<long>();
+        public long SelectedOrderIds { get; set; }
         public long Id_User { get; set; }
+        public long Id_Carte { get; set; }
+
+        public long Count_product { get; set; }
+
+
     }
 
 }

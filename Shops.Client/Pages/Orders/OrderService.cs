@@ -43,11 +43,11 @@ namespace Shops.Client.Pages.Orders
                     {
                         string successMessage = $"Заказ успешно создан с ID: {createdOrder}";
                         Console.WriteLine(successMessage);
-                        foreach (var item in orders.SelectedOrderIds)
-                        {
-                            selectedOrderIds.Remove(item);
+                        //foreach (var item in orders.SelectedOrderIds)
+                        //{
+                        //    selectedOrderIds.Remove(item);
 
-                        }
+                        //}
 
                         return successMessage;
                     }

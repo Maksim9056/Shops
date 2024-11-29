@@ -66,8 +66,10 @@
     {
         NotificationMessage = message;
         NotificationClass = alertClass;
-        await Task.Delay(5000); // Уведомление отображается 5 секунд
-        NotificationMessage = null; // Убираем уведомление
+        // StateHasChanged();
+
+        // await Task.Delay(5000); // Уведомление отображается 5 секунд
+        // NotificationMessage = null; // Убираем уведомление
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -101,6 +103,7 @@
             else
             {
                 await ShowNotification("Токен отсутствует. Пожалуйста, войдите снова.", "alert-warning");
+
 
             }
             // Загрузка данных

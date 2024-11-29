@@ -7,6 +7,7 @@
 @using Shops.Client.Pages.Orders
 @using System.Text
 @using System.Text.Json
+@using Shops.Client.Service
 @rendermode InteractiveServer
 @inject HttpClient client
 @inject NavigationManager NavigationManager
@@ -19,41 +20,106 @@
 @inject CategoryService CategoryService
 @inject OrderService OrderService
 @inject JWT_Decode JWT_Decode
+@inject CarteService CarteService
 
 
 
 @* Контейнер для выбора и отображения заказов *@
 @* Проверка количества товаров и установка класса *@
 
-
-@if (cartItems.Count > 0)
+@if (!string.IsNullOrEmpty(NotificationMessage))
 {
-    <div class="order-container @(cartItems.Count == 1 ? "single-item" : cartItems.Count == 2 ? "double-item" : "multiple-items")">
+    <div class="alert @NotificationClass">@NotificationMessage</div>
+}
+<h3>Выбор банковской карты для оплаты</h3>
+@if (cartes == null)
+{
+    <p>Загрузка карт...</p>
+}
+else if (!cartes.Any())
+{
+    <p>У вас нет зарегистрированных банковских карт.</p>
+    <button @onclick="NavigateToAddCarte" class="btn btn-primary">Добавить карту</button>
+}
+else
+{
+    <div class="form-group">
+        <label for="carteSelect">Ваши карты:</label>
+        <select id="carteSelect" class="form-control" @bind="selectedCarteId">
+            <option value="">Выберите карту</option>
+            @foreach (var carte in cartes)
+            {
+                <option value="@carte.Id">@carte.Bank_Carte</option>
+            }
+        </select>
+    </div>
+
+
+    @if (selectedCarte != null)
+    {
+        <div class="selected-carte">
+            <div class="carte-icon">
+                <span class="card-icon">💳</span> <!-- Используем символ карты -->
+            </div>
+            <div class="carte-details">
+                <h5>Выбранная карта:</h5>
+                <p><strong>Номер карты:</strong> @FormatCarteNumber(selectedCarte.Bank_Carte)</p>
+                <p><strong>Баланс:</strong> @string.Format("{0:N0} ₽", selectedCarte.Money_Account)</p>
+            </div>
+        </div>
+    }
+
+
+}
+
+
+@if (orders.Count > 0)
+{
+    <div class="order-container @(orders.Count == 1 ? "single-item" : orders.Count == 2 ? "double-item" : "multiple-items")">
         <h3>Ваши заказы</h3>
         <form id="orderForm">
             <div class="order-grid">
-                @for (int i = 0; i < orders.Count(); i++)
+                @foreach (var order in orders)
                 {
-                    var orderId = orders[i].Idproduct;
-                    <div class="order-card @(IsSelected(orderId) ? "active" : "")" @onclick="() => ToggleOrderSelection(orderId)">
-                        <input type="checkbox" class="order-checkbox" checked="@(IsSelected(orderId))" />
-                        <div class="order-header">
-                            <h5>@orders[i].OrdersName</h5>
-                            <span class="order-status">@orders[i].Status.StatusName</span>
-                        </div>
-                        <div class="order-content">
-                            <img src="data:image/png;base64,@Convert.ToBase64String(cartItems[i].Id_ProductDataImage.OriginalImageData)"
-                                 alt="@cartItems[i].Name_Product"
-                                 class="order-image" />
-                            <div class="order-details">
-                                <strong>@cartItems[i].Name_Product</strong><br />
-                                <span class="order-description">@cartItems[i].ProductsDescription</span>
-                                <p><strong>Цена:</strong> @cartItems[i].ProductPrice ₽</p>
-                                <p><strong>Количество:</strong> @cartItems[i].ProductCount</p>
+                    // Найти соответствующий элемент в cartItems
+                    var cartItem = cartItems.FirstOrDefault(ci => ci.Id == order.Idproduct);
+
+                    if (cartItem != null) // Проверяем, найден ли соответствующий элемент
+                    {
+                        var orderId = order.Idproduct;
+                        <div class="order-card @(IsSelected(orderId) ? "active" : "")" @onclick="() => ToggleOrderSelection(orderId)">
+                            <input type="checkbox" class="order-checkbox" checked="@(IsSelected(orderId))" />
+                            <div class="order-header">
+                                <h5>@order.OrdersName</h5>
+                                <span class="order-status">@order.Status.StatusName</span>
+                            </div>
+                            <div class="order-content">
+                                <img src="data:image/png;base64,@Convert.ToBase64String(cartItem.Id_ProductDataImage.OriginalImageData)"
+                                     alt="@cartItem.Name_Product"
+                                     class="order-image" />
+                                <div class="order-details">
+                                    <strong>@cartItem.Name_Product</strong><br />
+                                    <span class="order-description">@cartItem.ProductsDescription</span>
+                                    @try
+                                    {
+                                        <div class="product-quantity">
+                                            <button type="button" @onclick="(() => DecreaseQuantity(order))" class="btn btn-secondary" @onclick:stopPropagation>-</button>
+                                            <span>@order.BUY_product</span>
+                                            <button type="button" @onclick="() => IncreaseQuantity(order)" class="btn btn-secondary" @onclick:stopPropagation>+</button>
+                                        </div>
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        <h5>@e.Message</h5>
+                                    }
+                                    <p><strong>Цена:</strong> @cartItem.ProductPrice ₽</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                }
+                    }
+                } 
+
+             
             </div>
             <div class="text-center mt-4">
                 <button type="button" class="pay-button" @onclick="PaySelectedOrders">Оплатить выбранные</button>
@@ -213,7 +279,6 @@ else
             transform: translateY(-2px);
         }
 
-
     /* Стили аналогичны вашим предыдущим */
     .payment-status-message {
         color: #0c5460;
@@ -221,6 +286,92 @@ else
         margin-top: 15px;
         text-align: center;
     }
+
+    .cartes-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .carte-card {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .carte-card:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .carte-card.active {
+            border-color: #28a745;
+            background-color: #eaffea;
+        }
+
+    .add-carte-form {
+        max-width: 400px;
+        margin: 20px auto;
+    }
+
+        .add-carte-form label {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+    .form-group {
+        max-width: 400px;
+        margin: 20px auto;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    .selected-carte {
+        display: flex;
+        align-items: center;
+        border: 2px solid #28a745;
+        border-radius: 12px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    .carte-icon {
+        margin-right: 20px;
+        font-size: 2rem; /* Увеличиваем размер символа */
+        color: #28a745; /* Зеленый цвет символа карты */
+    }  
+
+
+    .carte-details {
+        flex-grow: 1;
+    }
+
+        .carte-details h5 {
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .carte-details p {
+            margin: 5px 0;
+            font-size: 1rem;
+            color: #555;
+        }
+
+            .carte-details p strong {
+                color: #000;
+            }
 </style>
 
 
@@ -233,17 +384,143 @@ else
     private bool _isInitialized;
     private string Store_CategoryUrl_Service;
     private string jwt_token { get; set; }
+    private string UserServiceUrl;
     public User user1;
     private Dictionary<long, Category> Categories = new Dictionary<long, Category>();
     public Category Category;
-
+    private Dictionary<long, long> productLimits = new Dictionary<long, long>();
     public List<Order> orders = new List<Order>();
-    // protected override async Task OnInitializedAsync()
+
+
+    public List<Orders_show> orders_Shows = new List<Orders_show>();
+    // protected override async Task OnInitializedAsync()1
     // {
     //     cartItems = await orderService.GetCartItemsForUser();
     // }
-    private string UserServiceUrl;
 
+
+    public List<Сarte> cartes = new List<Сarte>();
+    public Сarte selectedCarte;
+    public long? _selectedCarteId;
+    private string FormatCarteNumber(string carteNumber)
+    {
+        // Форматирует номер карты в виде "8888 **** **** 2092"
+        if (carteNumber.Length >= 16)
+        {
+            return string.Format("{0} **** **** {1}",
+                                 carteNumber.Substring(0, 4),
+                                 carteNumber.Substring(carteNumber.Length - 4));
+        }
+        return carteNumber; // Если длина меньше 16 символов, возвращаем как есть
+    }
+
+    public long? selectedCarteId
+    {
+        get => _selectedCarteId;
+        set
+        {
+            if (_selectedCarteId != value)
+            {
+                _selectedCarteId = value;
+                OnCarteChanged(); // Вызываем метод при изменении выбора
+            }
+        }
+    }
+    private void OnCarteChanged()
+    {
+        // Обновляем выбранную карту
+        selectedCarte = cartes?.FirstOrDefault(c => c.Id == selectedCarteId);
+        Console.WriteLine($"Выбрана карта: {selectedCarte?.Bank_Carte ?? "Неизвестно"}, Баланс: {selectedCarte?.Money_Account ?? 0}");
+    }
+
+
+    // private async Task OnCarteSelected(ChangeEventArgs e)
+    // {
+    //     if (long.TryParse(e.Value.ToString(), out long carteId))
+    //     {
+    //         selectedCarteId = carteId;
+    //         selectedCarte = cartes.FirstOrDefault(c => c.Id == carteId);
+
+    //         if (selectedCarte == null)
+    //         {
+    //             // Если карта не найдена, инициализируем её как пустую
+    //               selectedCarte = new Сarte
+    //                 {
+    //                     Bank_Carte = "Неизвестная карта",
+    //                     Money_Account = 0
+    //                 };
+    //         }
+    //     }
+    //     else
+    //     {
+    //         selectedCarteId = null;
+    //         selectedCarte = null;
+    //     }
+    // }
+    private async void NavigateToAddCarte()
+    {
+        if (user1 != null)
+        {
+            // Переход на страницу добавления карты
+            NavigationManager.NavigateTo($"/users/{user1.Id}/cartes/add");
+        }
+        else
+        {
+            await ShowNotification("Токен отсутствует. Пожалуйста, войдите снова.", "alert-warning");
+
+
+        }
+    }
+
+
+
+    private void IncreaseQuantity(Order product)
+    {
+        try
+        {
+            if (productLimits.TryGetValue(product.Id, out long maxLimit) && product.BUY_product < maxLimit)
+            {
+                product.BUY_product++;
+
+            }
+        }
+        catch(Exception)
+        {
+
+        }
+    }
+
+    private void DecreaseQuantity(Order product)
+    {
+        if (product.BUY_product > 0)
+        {
+            product.BUY_product--;
+
+        }
+    }
+
+    // private bool CanIncreaseQuantity(Order product)
+    // {
+    //     return productLimits.TryGetValue(product.Id, out long maxLimit) && product.BUY_product < maxLimit;
+    // }
+
+    // private bool CanDecreaseQuantity(Order product)
+    // {
+    //     return product.BUY_product > 0;
+    // }
+
+    private async Task ShowNotification(string message, string alertClass)
+    {
+        NotificationMessage = message;
+        NotificationClass = alertClass;
+        // StateHasChanged();
+
+        // await Task.Delay(5000); // Уведомление отображается 5 секунд
+        // NotificationMessage = null; // Убираем уведомление
+    }
+
+    private string NotificationMessage { get; set; }
+    private string NotificationClass { get; set; }
     protected override async Task OnInitializedAsync()
     {
         try
@@ -256,6 +533,7 @@ else
 
         }
     }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         Console.WriteLine($"OnAfterRenderAsync вызван в {DateTime.Now}, firstRender: {firstRender}");
@@ -339,61 +617,74 @@ else
                         Console.WriteLine("JWT Token: " + jwt_token);
                         Console.WriteLine("JWT токен действителен");
                         client.DefaultRequestHeaders.Authorization = null;
+
+
+
+                        orders = await OrderService.GetOrdersByUserIdAsync(user1.Id);
+                        // user /{ userId}
+                        // // cartItems.Add(product);
+                        cartes = await CarteService.GetCartesAsync(user.Id);
+
+                        for (int i = 0; i < orders.Count(); i++)
+                        {
+
+
+                            var product = await ProductService.GetProductByIdAsync(orders[i].Idproduct);
+                            // Category category; // Объявляем переменную category перед использованием
+                            Category category; // Объявляем переменную category перед использованием
+
+                            if (Categories.TryGetValue(product.Category_Id.Id, out category))
+                            {
+
+                                product.Category_Id.Image_Category = new Image { Id = product.Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
+
+
+                                // // Если категория найдена, обновляем её данные
+                                // Categories[products[i].Category_Id.Id].Image_Category = new Image
+                                //     {
+                                //         Id = products[i].Category_Id.Image_Category.Id,
+                                //         OriginalImageData = imageCategory.CopyImageData
+                                //     };
+
+                            }
+                            else
+                            {
+                                var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{product.Category_Id.Image_Category.Id}");
+                                if (imageCategory != null)
+                                {
+                                    product.Category_Id.Image_Category = new Image { Id = product.Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
+                                    Categories.Add(product.Category_Id.Id, product.Category_Id);
+
+
+                                }
+                            }
+
+                            var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{product.Id_ProductDataImage.Id}");
+                            if (imageProduct != null)
+                            {
+                                product.Id_ProductDataImage = new Image { Id = product.Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
+
+                            }
+                            productLimits.Add(orders[i].Id, product.ProductCount);
+                            // Orders_show orders_Show = new Orders_show() { product = orders[i], cartItem = product };
+                            // orders_Shows.Add(orders_Show);
+                            cartItems.Add(product);
+
+                            Console.WriteLine($"Продукт получен для  корзины  количества {i} :{product.Id} {product.Name_Product} {product.Category_Id.Name_Category}");
+                        }
                     }
 
 
                     // Извлекаем значения nameid и email
 
                 }
-
-
-                orders = await OrderService.GetOrdersByUserIdAsync(user1.Id);
-                // user /{ userId}
-                // // cartItems.Add(product);
-
-                for (int i = 0; i < orders.Count(); i++)
+                else
                 {
+                    await ShowNotification("Токен отсутствует. Пожалуйста, войдите снова.", "alert-warning");
 
-
-                    var product = await ProductService.GetProductByIdAsync(orders[i].Idproduct);
-                    // Category category; // Объявляем переменную category перед использованием
-                    Category category; // Объявляем переменную category перед использованием
-
-                    if (Categories.TryGetValue(product.Category_Id.Id, out category))
-                    {
-
-                        product.Category_Id.Image_Category = new Image { Id = product.Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
-
-
-                        // // Если категория найдена, обновляем её данные
-                        // Categories[products[i].Category_Id.Id].Image_Category = new Image
-                        //     {
-                        //         Id = products[i].Category_Id.Image_Category.Id,
-                        //         OriginalImageData = imageCategory.CopyImageData
-                        //     };
-
-                    }
-                    else
-                    {
-                        var imageCategory = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{product.Category_Id.Image_Category.Id}");
-                        if (imageCategory != null)
-                        {
-                            product.Category_Id.Image_Category = new Image { Id = product.Category_Id.Image_Category.Id, OriginalImageData = imageCategory.CopyImageData };
-                            Categories.Add(product.Category_Id.Id, product.Category_Id);
-
-
-                        }
-                    }
-
-                    var imageProduct = await client.GetFromJsonAsync<ImageCopy>(Url_Image + $"/Image/{product.Id_ProductDataImage.Id}");
-                    if (imageProduct != null)
-                    {
-                        product.Id_ProductDataImage = new Image { Id = product.Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
-
-                    }
-                    cartItems.Add(product);
-                    Console.WriteLine($"Продукт получен для  корзины  количества {i} :{product.Id} {product.Name_Product} {product.Category_Id.Name_Category}");
                 }
+
+
 
                 StateHasChanged();
 
@@ -415,27 +706,34 @@ else
         var user = JWT_Decode.Check_jwt_token(jwt_token);
         if (user.Email != null)
         {
-
-
             if (selectedOrderIds.Count > 0)
             {
-                Advance_Payment advance_Payment = new Advance_Payment()
+
+                @foreach (var  order in selectedOrderIds)
                 {
-                    // Здесь можно указать детали оплаты
-                };
-                advance_Payment.SelectedOrderIds = selectedOrderIds;
-                advance_Payment.Id_User = user.Id;
+                   var  product =  orders.FirstOrDefault(u => u.Idproduct == order);
+                    Advance_Payment advance_Payment = new Advance_Payment()
+                    {
+                        // Здесь можно указать детали оплаты
+                    };
+                    advance_Payment.SelectedOrderIds = product.Id;
+                    advance_Payment.Id_User = user.Id;
+                    advance_Payment.Count_product = product.BUY_product;
+                    advance_Payment.Id_Carte = selectedCarte.Id;
 
-                string resultMessage = await OrderService.Post_AllOrdersAsync(advance_Payment, selectedOrderIds);
-                paymentStatusMessage = resultMessage; // Сохраняем сообщение для отображения пользователю
-                Console.WriteLine("Оплачиваем товары с ID: " + string.Join(", ", selectedOrderIds));
-                await   OnAfterRenderAsync(true);
 
+                    string resultMessage = await OrderService.Post_AllOrdersAsync(advance_Payment, selectedOrderIds);
+                    paymentStatusMessage = resultMessage; // Сохраняем сообщение для отображения пользователю
+                    Console.WriteLine("Оплачиваем товары с ID: " + string.Join(", ", selectedOrderIds));
+                }
+                await OnAfterRenderAsync(true);
             }
             else
             {
                 paymentStatusMessage = "Выберите хотя бы один товар для оплаты.";
-            } 
+            }
+        
+       
         }
     }
 
@@ -457,5 +755,86 @@ else
     // Проверка, является ли товар выбранным
     private bool IsSelected(long orderId) => selectedOrderIds.Contains(orderId);
 
+    public  class Orders_show()
+    {
 
+        public Order product;
+        public Product cartItem;
+ 
+
+    }
 }
+            @*     @foreach (var order in orders)
+                {
+                    // Найти соответствующий элемент в cartItems
+                    var cartItem = cartItems.FirstOrDefault(ci => ci.Id == order.Idproduct);
+
+                    if (cartItem != null) // Проверяем, найден ли соответствующий элемент
+                    {
+                        var orderId = order.Idproduct;
+                        <div class="order-card @(IsSelected(orderId) ? "active" : "")" @onclick="() => ToggleOrderSelection(orderId)">
+                            <input type="checkbox" class="order-checkbox" checked="@(IsSelected(orderId))" />
+                            <div class="order-header">
+                                <h5>@order.OrdersName</h5>
+                                <span class="order-status">@order.Status.StatusName</span>
+                            </div>
+                            <div class="order-content">
+                                <img src="data:image/png;base64,@Convert.ToBase64String(cartItem.Id_ProductDataImage.OriginalImageData)"
+                                     alt="@cartItem.Name_Product"
+                                     class="order-image" />
+                                <div class="order-details">
+                                    <strong>@cartItem.Name_Product</strong><br />
+                                    <span class="order-description">@cartItem.ProductsDescription</span>
+                                    @try
+                                    {
+
+
+                                    <div class="product-quantity">
+                                        <button @onclick="(() =>  DecreaseQuantity(order))" class="btn btn-secondary">-</button>
+                                        <span>@order.BUY_product</span>
+                                        <button @onclick="() => IncreaseQuantity(order)" class="btn btn-secondary">+</button>
+                                    </div>
+                                    }catch(Exception e){
+                                        <h5>@e.Message</h5>
+                                    }
+                                    <p><strong>Цена:</strong> @cartItem.ProductPrice ₽</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                } *@
+@*                    @foreach (var order in orders_Shows)
+{
+    // Найти соответствующий элемент в cartItems
+    <div class="order-card @(IsSelected(@order.product.Id) ? "active" : "")" @onclick="() => ToggleOrderSelection(order.product.Id)">
+        <input type="checkbox" class="order-checkbox" checked="@(IsSelected(order.product.Id))" />
+        <div class="order-header">
+            <h5>@order.product.OrdersName</h5>
+            <span class="order-status">@order.product.Status.StatusName</span>
+        </div>
+        <div class="order-content">
+            <img src="data:image/png;base64,@Convert.ToBase64String(order.cartItem.Id_ProductDataImage.OriginalImageData)"
+                 alt="@order.cartItem.Name_Product"
+                 class="order-image" />
+            <div class="order-details">
+                <strong>@order.cartItem.Name_Product</strong><br />
+                <span class="order-description">@order.cartItem.ProductsDescription</span>
+                @try
+                {
+
+
+                    <div class="product-quantity">
+                        <button type="button" @onclick="(() =>  DecreaseQuantity(order.product))" class="btn btn-secondary">-</button>
+                        <span>@order.product.BUY_product</span>
+                        <button type="button" @onclick="() => IncreaseQuantity(order.product)" class="btn btn-secondary">+</button>
+                    </div>
+                }
+                catch (Exception e)
+                {
+                    <h5>@e.Message</h5>
+                }
+                <p><strong>Цена:</strong> @order.cartItem.ProductPrice ₽</p>
+            </div>
+        </div>
+    </div>
+} *@

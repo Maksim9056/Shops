@@ -38,55 +38,68 @@ namespace Store_Orders.Service
                    .ThenInclude(i => i.ImageCopies)
                .Include(u => u.Status)
                .FirstOrDefaultAsync(u => u.Id == payment.Id_User);
-            long Orders_product = 0;
+            //long Orders_product = 0;
 
             // Извлекаем заказы, которые необходимо оплатить
-            var ordersToPay = await _context.Orders.Include(u => u.Status)
-                .Where(o => payment.SelectedOrderIds.Contains(o.Idproduct) && o.User.Id == user.Id)
-                .ToListAsync();
+            var ordersToPay = await _context.Orders.Include(u => u.Status).FirstOrDefaultAsync(o => o.Id == payment.SelectedOrderIds && o.User.Id == user.Id);
 
 
 
 
-            if (ordersToPay.Count != payment.SelectedOrderIds.Count)
+            if (ordersToPay.Id != payment.SelectedOrderIds)
             {
                 return "Некоторые заказы не найдены или не принадлежат пользователю.";
             }
+
             long SUMM = 0;
-            foreach (var i in payment.SelectedOrderIds)
+            for (int i = 0; i < payment.Count_product; i++)
             {
 
-                var prodduct = await _context.Products.FirstOrDefaultAsync(u => u.Id == i);
-                if (prodduct != null)
-                {
-                    SUMM = +prodduct.ProductPrice;
+                var products = await _context.Products
+               .Include(u => u.Id_ProductDataImage)
+               .Include(u => u.Category_Id.Image_Category).FirstOrDefaultAsync(u =>u.Id == ordersToPay.Idproduct);
+                SUMM = +products.ProductPrice;
 
-                }
             }
+            //foreach (var i in payment.SelectedOrderIds)
+            //{
 
+            //    var prodduct = await _context.Products.FirstOrDefaultAsync(u => u.Id == i);
+            //    if (prodduct != null)
+            //    {
+
+
+            //    }
+            //}
+            var produc = await _context.Products
+             .Include(u => u.Id_ProductDataImage)
+             .Include(u => u.Category_Id.Image_Category).FirstOrDefaultAsync(u => u.Id == ordersToPay.Idproduct);
+
+            var сarte = await _context.Сarte.FirstOrDefaultAsync(u =>u.Id == payment.Id_Carte);
             // Рассчитываем общую стоимость заказов
             var totalAmount = SUMM;
 
-            //// Проверяем, достаточно ли средств на счету
-            //if (user.Money_Account < totalAmount)
-            //{
-            //    return "Недостаточно средств для оплаты заказов.";
-            //}
+            // Проверяем, достаточно ли средств на счету
+            if (сarte.Money_Account < totalAmount)
+            {
+                return "Недостаточно средств для оплаты заказов.";
+            }
+            produc.ProductCount  = produc.ProductCount - payment.Count_product;
 
-            //// Списываем сумму со счета пользователя и обновляем статус заказов
-            //user.Money_Account -= totalAmount;
-            //foreach (var orders in ordersToPay)
-            //{
-            //    orders.Status = await _context.Status.FirstOrDefaultAsync(s => s.Description == "Заказ оплачен!");
-            //}
+            ordersToPay.Status = await _context.Status.FirstOrDefaultAsync(s => s.Description == "Заказ оплачен!");
 
-            // Сохраняем изменения
+            сarte.Money_Account = сarte.Money_Account - totalAmount;
+           // Сохраняем изменения
             await _context.SaveChangesAsync();
             return "Оплата прошла успешно.";
         }
 
         public async Task<ActionResult<Order>> CreateOrderAsync(Order order)
         {
+            //// Списываем сумму со счета пользователя и обновляем статус заказов
+            //user.Money_Account -= totalAmount;
+            //foreach (var orders in ordersToPay)
+            //{
             var user = await _context.Users
                       .Include(u => u.Id_User_Image)
                       .ThenInclude(i => i.ImageCopies)
