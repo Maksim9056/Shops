@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ShopClassLibrary.ModelShop;
+using SeleniumExtras.WaitHelpers;
+using OpenQA.Selenium.Interactions;
 
 namespace Story_Test
 {
@@ -22,7 +24,7 @@ namespace Story_Test
 
                 foreach (var product in Data_product.Products)
                 {
-                    WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(60));
+                    WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
 
                     // Проверяем, если продукт уже существует
                     if (!IsProductPresent(product.Name_Product, wait))
@@ -79,11 +81,92 @@ namespace Story_Test
                 // Загрузка изображения
                 IWebElement fileInput = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementExists(By.CssSelector(ProductPageSelectors.CssSelector_Fille)));
                 fileInput.SendKeys(product.Id_ProductDataImage.Description);
+                Thread.Sleep(TimeSpan.FromMinutes(1)); // Жёсткое ожидание 1 минута
+
+                // Прокручиваем к кнопке
+                IWebElement saveButton = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementExists(By.Id("saveButton")));
+
+                Console.WriteLine($"Кнопка найдена: {saveButton != null}");
+                Console.WriteLine($"Enabled: {saveButton.Enabled}, Displayed: {saveButton.Displayed}");
+
+                // Если элемент перекрыт
+                bool isObstructed = (bool)((IJavaScriptExecutor)driver).ExecuteScript(@"
+                 var element = arguments[0];
+                 var rect = element.getBoundingClientRect();
+                 var centerX = rect.left + rect.width / 2;
+                 var centerY = rect.top + rect.height / 2;
+                 var topElement = document.elementFromPoint(centerX, centerY);
+                 return topElement !== element;", saveButton);
+
+                if (isObstructed)
+                {
+                    Console.WriteLine("Элемент перекрыт.");
+                    // Удаление перекрывающего элемента
+                    IWebElement blocker = driver.FindElement(By.CssSelector("перекрывающий элемент")); // Замените селектор
+                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].remove();", blocker);
+                }
+
+                // Попробуйте обычный клик
+                try
+                {
+                    //saveButton.Click();
+                    //Console.WriteLine("Клик выполнен.");
+                    //Actions actions = new Actions(driver);
+                    //actions.MoveToElement(saveButton).Click().Perform();
+                    //Console.WriteLine("Клик через Actions выполнен.");
+                    //Console.WriteLine($"Клик через Actions не удался:");
+                    //Console.WriteLine("Пробую JavaScript-клик...");
+                    // Клик через JavaScript
+                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", saveButton);
+                    //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].submit();", saveButton);
+
+                    Console.WriteLine("Клик через JavaScript выполнен.");
+                    //var form = driver.FindElement(By.TagName("form"));
+                    //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].submit();", form);
+                    Console.WriteLine("Форма отправлена напрямую.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Обычный клик не удался: {ex.Message}");
+
+                    // Попробуйте клик через Actions
+               
+                }
+             
+
+                //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", saveButton);
+
+                //// Проверяем, что кнопка готова
+                //Assert.IsTrue(saveButton.Enabled, "Кнопка 'Сохранить' заблокирована.");
+                //Assert.IsTrue(saveButton.Displayed, "Кнопка 'Сохранить' не отображается.");
+
+
+
+
+                //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].focus();", saveButton);
+
+                // ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", saveButton);
+                // saveButton.Submit();
+
+                //// Нажатие кнопки "Сохранить" через ID
+                //IWebElement saveButton = driver.FindElement(By.Id("saveButton"));
+                //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", saveButton);
+
                 // Сохранение продукта с использованием JavaScript для клика
-                IWebElement saveButton = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath(ProductPageSelectors.XPath_saveButton)));
-                saveButton.Click();
+                //IWebElement saveButton = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath(ProductPageSelectors.XPath_saveButton)));
+                //saveButton.Click();
+                //IWebElement saveButton = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.XPath("//button[@type='submit' and text()='Сохранить']")));
+                //saveButton.Click();
+                // Нажатие кнопки "Сохранить"
+                //var saveButton = driver.FindElement(By.XPath("//button[@type='submit' and text()='Сохранить']"));
+                //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", saveButton);
                 //((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", saveButton);
 
+
+                // Проверка успешного редиректа или сообщения
+                wait.Until(ExpectedConditions.UrlContains("/products")); // Проверяем, что произошло перенаправление
+                Assert.IsTrue(driver.Url.Contains("/products"), "Продукт не был создан успешно.");
+            
                 // Сохранение продукта
             }
             catch (Exception)

@@ -28,8 +28,13 @@
                 <div class="product-info">
                     <h4>@product.Name_Product</h4>
                     <p>@product.ProductsDescription</p>
-                    <p>Количество :@product.ProductCount</p>
-
+                    <div class="product-quantity">
+                        <button @onclick="(() => DecreaseQuantity(product))" class="btn btn-secondary">-</button>
+                        <span>@product.ProductCount</span>
+                        <button @onclick="(() => IncreaseQuantity(product))" class="btn btn-secondary">+</button>
+                    </div>
+@*                     <p>Количество :@product.ProductCount</p>
+ *@
                     <p class="product-price">Price: @product.ProductPrice</p>
                     <button @onclick="(u => AddProductOrder(product))" class="btn btn-primary">Add to Cart</button>
                 </div>
@@ -39,7 +44,7 @@
 }
 else
 {
-    <p>No products found for "@searchQuery".</p>
+    <p>Товары не найдены.</p>
 }
 
 <style>
@@ -115,19 +120,51 @@ else
         .btn:hover {
             background-color: #0056b3;
         }
+
+    .product-quantity {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .product-quantity span {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
 </style>
 
 
 @code {
     private List<Product> products = new List<Product>();
     private string searchQuery;
+    private string selectedCategory;
+    private long minPrice;
+    private long maxPrice;
     private string UserServiceUrl;
     private string jwt_token { get; set; }
     public User user1 = new User();
     public Category Category;
     private Dictionary<long, Category> Categories = new Dictionary<long, Category>();
     public string Url_Image;
+    private Dictionary<long, long> productLimits = new Dictionary<long, long>();
 
+    private void IncreaseQuantity(Product product)
+    {
+        // Увеличение количества товара
+        if (productLimits.TryGetValue(product.Id, out long maxLimit) && product.ProductCount < maxLimit)
+        {
+            product.ProductCount++;
+        }
+    }
+
+    private void DecreaseQuantity(Product product)
+    {
+        // Уменьшение количества товара, если больше 0
+        if (product.ProductCount > 0)
+        {
+            product.ProductCount--;
+        }
+    }
     protected override async Task OnInitializedAsync()
     {
     
@@ -147,10 +184,28 @@ else
                 var queryParameters = QueryHelpers.ParseQuery(uri.Query);
 
                 if (queryParameters.TryGetValue("query", out var query))
-                {
                     searchQuery = query;
-                    products = await ProductService.SearchProductsAsync(searchQuery);
-                }
+
+                if (queryParameters.TryGetValue("category", out var category))
+                    selectedCategory = category;
+
+                if (queryParameters.TryGetValue("minPrice", out var min))
+                    minPrice = long.TryParse(min, out var minVal) ? minVal : 0;
+
+                if (queryParameters.TryGetValue("maxPrice", out var max))
+                    maxPrice = long.TryParse(max, out var maxVal) ? maxVal : 0;
+
+
+
+                // var uri = new Uri(NavigationManager.Uri);
+                // var queryParameters = QueryHelpers.ParseQuery(uri.Query);
+                products = await ProductService.SearchProductsAsync(searchQuery, selectedCategory, minPrice, maxPrice);
+
+                // if (queryParameters.TryGetValue("query", out var query))
+                // {
+                //     searchQuery = query;
+                //     products = await ProductService.SearchProductsAsync(searchQuery);
+                // }
 
                 UserServiceUrl = UrlService.GetUserServiceUrl();
                 Url_Image = UrlService.GetStoreImage_Products_ServiceUrl();
@@ -218,12 +273,12 @@ else
                 for (int i = 0; i < products.Count; i++)
                 {
 
-                    Category category; // Объявляем переменную category перед использованием
+                    // Category category; // Объявляем переменную category перед использованием
 
-                    if (Categories.TryGetValue(products[i].Category_Id.Id, out category))
+                    if (Categories.TryGetValue(products[i].Category_Id.Id, out Category))
                     {
 
-                        products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = category.Image_Category.OriginalImageData };
+                        products[i].Category_Id.Image_Category = new Image { Id = products[i].Category_Id.Image_Category.Id, OriginalImageData = Category.Image_Category.OriginalImageData };
 
 
                         // // Если категория найдена, обновляем её данные
@@ -252,7 +307,8 @@ else
                         products[i].Id_ProductDataImage = new Image { Id = products[i].Id_ProductDataImage.Id, OriginalImageData = imageProduct.CopyImageData };
 
                     }
-
+                    productLimits.Add(products[i].Id, products[i].ProductCount);
+                    products[i].ProductCount = 0;
                 }
                 StateHasChanged();
             }
@@ -269,20 +325,18 @@ else
     {
         try
         {
-
-
             if (user1.Email != null)
             {
 
                 // product.Id_ProductDataImage.OriginalImageData = new byte[1];
-                Category.Image_Category = new Image() { Id = 0, Description = "", ImageCopies = new List<ImageCopy>(), OriginalImageData = new byte[1], UploadDate = DateTime.UtcNow };
+                product.Category_Id.Image_Category = new Image() { Id = 0, Description = "", ImageCopies = new List<ImageCopy>(), OriginalImageData = new byte[1], UploadDate = DateTime.UtcNow };
                 user1.Id_User_Image = new Image() { Id = 0, Description = "", ImageCopies = new List<ImageCopy>(), OriginalImageData = new byte[1], UploadDate = DateTime.UtcNow };
 
                 user1.Status = new Status() { Id = 0, Description = "", StatusName = "" };
 
                 // product_add.Add(Convert.ToInt32(product.Id));
                 Status status = new Status() { Id = 8, Description = "", StatusName = "" };
-                Order order = new Order() { Id = 0, OrdersName = Category.Name_Category, Status = status, Idproduct = product.Id, User = user1 };
+                Order order = new Order() { Id = 0, OrdersName = product.Category_Id.Name_Category, Status = status, Idproduct = product.Id, User = user1 };
                 await OrderService.CreateOrderAsync(order);
 
                 // product_add.Remove(Convert.ToInt32(product.Id));

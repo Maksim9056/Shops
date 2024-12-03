@@ -77,10 +77,10 @@ namespace Shops.Client.Pages.Admin.Product
             }
         }
 
-        public async Task<List<ShopClassLibrary.ModelShop.Product>> SearchProductsAsync(string query)
+        public async Task<List<ShopClassLibrary.ModelShop.Product>> SearchProductsAsync(string searchQuery, string selectedCategory, long minPrice, long maxPrice)
         {
             // Replace with actual search logic, e.g., a call to an API endpoint
-            var response = await _httpClient.GetFromJsonAsync<List<ShopClassLibrary.ModelShop.Product >>(_url+$"/ProductControler/search?query={query}");
+            var response = await _httpClient.GetFromJsonAsync<List<ShopClassLibrary.ModelShop.Product >>(_url+$"/ProductControler/search?query={searchQuery}&category={selectedCategory}&minPrice={minPrice}&maxPrice={maxPrice}");
             return response ?? new List<ShopClassLibrary.ModelShop.Product>();
         }
 
@@ -89,12 +89,12 @@ namespace Shops.Client.Pages.Admin.Product
         {
             product.Category_Id.Image_Category.ImageCopies = new List<ImageCopy>();
             product.Id_ProductDataImage.ImageCopies = new List<ImageCopy>();
-            await _httpClient.PutAsJsonAsync(_url + $"/ProductControler/{product.Id}", product);
+            await _httpClient.PutAsJsonAsync(_url + $"/ProductControler/update{product.Id}", product);
         }
 
         public async Task DeleteProductAsync(long id)
         {
-            await _httpClient.DeleteAsync(_url + $"/ProductControler/{id}");
+            await _httpClient.DeleteAsync(_url + $"/ProductControler/delete/{id}");
         }
     }
 

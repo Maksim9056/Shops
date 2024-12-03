@@ -12,9 +12,6 @@ namespace Store_Products.Controllers
     [Route("[controller]")]
     public class ProductControler: ControllerBase
     {
-
-
-
         private readonly ProductService _productService;
 
         public ProductControler(ProductService productService)
@@ -23,14 +20,15 @@ namespace Store_Products.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<List<Product>>> SearchProducts(string query)
+        public async Task<ActionResult<List<Product>>> SearchProducts(string query, string category, long? minPrice ,long maxPrice)
         {
-            if (string.IsNullOrWhiteSpace(query))
+           
+            if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(category) && string.IsNullOrWhiteSpace(minPrice.ToString())  && string.IsNullOrWhiteSpace(maxPrice.ToString()))
             {
-                return BadRequest("Search query cannot be empty.");
+                return BadRequest("At least one search criterion must be specified.");
             }
 
-            var products = await _productService.SearchProductsAsync(query);
+            var products = await _productService.SearchProductsAsync(query, category, minPrice, maxPrice);
             return Ok(products);
         }
 
@@ -60,7 +58,7 @@ namespace Store_Products.Controllers
             return Ok(product);
         }
 
-        [HttpPost("add")]
+        [HttpPost("create")]
         public async Task<ActionResult<Product>> AddProduct(Product product)
         {
             var addedProduct = await _productService.AddProductAsync(product);

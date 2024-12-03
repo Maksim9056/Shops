@@ -10,9 +10,20 @@
 @inject IJSRuntime JSRuntime
 @inject IConfiguration Configuration
 
-<input @bind="searchInput" placeholder="Search for products..." />
-<button @onclick="PerformSearch">Search</button>
+@* <input @bind="searchInput" placeholder="Search for products..." />
+<button @onclick="PerformSearch">Search</button> *@
+<input @bind="searchInput" placeholder="Искать товары..." />
+<select @bind="selectedCategory">
+    <option value="">Все категории</option>
+    @foreach (var category in categoryList)
+    {
+        <option value="@category.Name_Category">@category.Name_Category</option>
+    }
+</select>
+<input @bind="minPrice" type="number" placeholder="Мин. цена" />
+<input @bind="maxPrice" type="number" placeholder="Макс. цена" />
 
+<button @onclick="PerformSearch">Искать</button>
 @if (categoryList.Count() > 0)
 {
     <div class="category-grid">
@@ -78,10 +89,14 @@
 
 @code
 {  private string searchInput;
-
+    private string searchQuery;
+    private string selectedCategory;
+    private long minPrice;
+    private long maxPrice;
     private void PerformSearch()
     {
-        NavigationManager.NavigateTo($"/search?query={searchInput}");
+        var url = $"/search?query={searchInput}&category={selectedCategory}&minPrice={minPrice}&maxPrice={maxPrice}";
+        NavigationManager.NavigateTo(url);
     }
 
     private string Searh_input;

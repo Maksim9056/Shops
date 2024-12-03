@@ -9,24 +9,36 @@ namespace Story_Test
     public class Tests
     {
      
-     
+     //"C:\\edgedriver_win64\\msedgedriver.exe",
         string CategoryUrl = "https://localhost:7264/products";
 
         protected IWebDriver driver;
+
         [SetUp]
         public void Setup()
         {
+
+            new WebDriverManager.DriverManager().SetUpDriver(new WebDriverManager.DriverConfigs.Impl.EdgeConfig());
+
             EdgeOptions options = new EdgeOptions();
-            driver = new EdgeDriver("C:\\edgedriver_win64\\msedgedriver.exe", options);
+            //options.AddArgument("--headless"); // Режим без интерфейса
+            options.AddArgument("--no-sandbox");
+            options.AddArgument("--disable-dev-shm-usage");
+            driver = new EdgeDriver( options);
             driver.Manage().Window.Maximize();
             driver.Navigate().GoToUrl(CategoryUrl);
         }
 
 
-       
+
         [TearDown]
         public void Cleanup()
         {
+            var logs = driver.Manage().Logs.GetLog(LogType.Browser);
+            logs.Where(log => log.Level == LogLevel.Warning || log.Level == LogLevel.Severe)
+                .ToList()
+                .ForEach(log => Console.WriteLine($"{log.Level}: {log.Message}"));
+
             driver.Quit();
             driver.Dispose();
         }

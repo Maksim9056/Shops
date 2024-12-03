@@ -66,28 +66,36 @@ namespace Store_Products.Service
             return products;
         }
 
-        public async Task<List<Product>> SearchProductsAsync(string query)
+        public async Task<List<Product>> SearchProductsAsync(string query, string category, long? minPrice, long? maxPrice)
         {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                return new List<Product>();
-            }
-
-            var cacheKey = $"Search_{query}_Products";
+            var cacheKey = $"Search_{query}_{category}_{minPrice}_{maxPrice}_Products";
             var cachedProducts = await _cache.GetStringAsync(cacheKey);
 
-            if (!string.IsNullOrEmpty(cachedProducts))
+            if (!string.IsNullOrEmpty(cachedProducts) && cachedProducts != "[]")
             {
-                return JsonConvert.DeserializeObject<List<Product>>(cachedProducts);
+                return JsonConvert.DeserializeObject<List<Product>>(cachedProducts) ?? new List<Product>();
             }
 
-            var products = await _context.Products
-                .AsNoTracking() // Улучшаем производительность, убирая отслеживание
-                .Include(p => p.Id_ProductDataImage)
+            if (minPrice.HasValue && maxPrice.HasValue && minPrice > maxPrice)
+            {
+                // Меняем местами minPrice и maxPrice
+                var temp = minPrice;
+                minPrice = maxPrice;
+                maxPrice = temp;
+            }
+            var productsQuery = await _context.Products
+                .AsNoTracking()
+                 .Include(p => p.Id_ProductDataImage)
                 .Include(u => u.Status)
                 .Include(p => p.Category_Id.Image_Category)
-                .Where(p => p.Name_Product.Contains(query))
-                .ToListAsync();
+                  .Where(p =>
+        (string.IsNullOrEmpty(query) || p.Name_Product.ToLower().Contains(query.Trim().ToLower())) &&
+        (string.IsNullOrEmpty(category) || p.Category_Id.Name_Category.Trim() == category.Trim()) &&
+        (!minPrice.HasValue || p.ProductPrice >= Convert.ToInt64(minPrice.Value)) &&
+        (!maxPrice.HasValue || p.ProductPrice <= Convert.ToInt64(maxPrice.Value)))
+    .ToListAsync();
+
+            var products = productsQuery;
 
             Parallel.ForEach(products, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, product =>
             {
@@ -95,11 +103,10 @@ namespace Store_Products.Service
                 product.Category_Id.Image_Category.OriginalImageData = Array.Empty<byte>();
             });
 
-            // Кэшируем результат поиска
             await CacheListAsync(cacheKey, products, TimeSpan.FromMinutes(10));
-
             return products;
 
+            // Кэшируем результат поиска
         }
 
         public async Task<Product> GetProductByIdAsync(long id)
@@ -131,6 +138,38 @@ namespace Store_Products.Service
 
         public async Task<Product> AddProductAsync(Product product)
         {
+
+            var CategoryImage = await _context.Category.Include(u => u.Image_Category.ImageCopies).FirstOrDefaultAsync(U => U.Id == product.Category_Id.Id);
+
+            var productImage = await _context.Image.Include(u => u.ImageCopies).FirstOrDefaultAsync(U => U.Id == product.Id_ProductDataImage.Id);
+            if (productImage == null)
+            {
+                return  new Product();
+            }
+
+            var productStatus = await _context.Status.FirstOrDefaultAsync(U => U.Id == product.Status.Id);
+            if (productStatus == null)
+            {
+                return new Product();
+            }
+
+            if (productImage != null)
+            {// Если статус существует, присоединяем его к контексту
+
+
+
+                _context.Entry(productImage).State = EntityState.Unchanged;
+                product.Id_ProductDataImage = productImage;
+                _context.Entry(productStatus).State = EntityState.Unchanged;
+
+                product.Status = productStatus;
+                _context.Entry(CategoryImage).State = EntityState.Unchanged;
+                product.Category_Id = CategoryImage;
+
+            }
+
+
+
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 

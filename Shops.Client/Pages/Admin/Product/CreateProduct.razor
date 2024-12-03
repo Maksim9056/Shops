@@ -9,7 +9,7 @@
 @inject UrlService UrlService
 <h3>Создать продукт</h3>
 
-<EditForm Model="product" OnValidSubmit="HandleValidSubmit">
+<EditForm Model="product"  OnValidSubmit="HandleValidSubmit" >
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -29,7 +29,7 @@
     </div>
     <div class="form-group">
         <label for="ProductCount">Цена</label>
-        <InputNumber id="ProductCount" class="form-control" @bind-Value="product.ProductPrice" />
+        <InputNumber id="ProductPrice" class="form-control" @bind-Value="product.ProductPrice" />
     </div>
 
     
@@ -56,10 +56,10 @@
         <InputFile OnChange="HandleFileSelected" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <button type="submit"  id="saveButton"  class="btn btn-primary">Сохранить</button>
 </EditForm>
-
-@* <option @onchange="ToggleSelection(category)" value="@category.Id">@category.Name_Category</option>
+@* type="submit"
+ *@@* <option @onchange="ToggleSelection(category)" value="@category.Id">@category.Name_Category</option>
  *@
 @code {
     public Product product = new Product() { Category_Id = new Category() { Id = 0 } };
@@ -123,11 +123,13 @@
     private async Task HandleValidSubmit()
     {
         try
-        {
+        { 
 
             product.Id = 0;
 
             product.Status = new Status() { Id = 6, Description = "", StatusName = "" };
+
+
             product.Id_ProductDataImage.OriginalImageData = new byte[1];
             product.Id_ProductDataImage.ImageCopies = new List<ImageCopy>();
             // if (selectedFile != null)
